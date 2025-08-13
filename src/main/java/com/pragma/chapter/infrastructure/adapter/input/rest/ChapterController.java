@@ -4,7 +4,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
+import com.pragma.shared.context.UserContextHelper;
 import com.pragma.shared.dto.ErrorResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/chapter")
+@Slf4j
 public class ChapterController {
 
     private final MessageService messageService;
@@ -57,6 +60,12 @@ public class ChapterController {
 
     @PostMapping("/")
     public ResponseEntity<OkResponseDto<ChapterDto>> postCreate(@Valid @RequestBody CreateChapterDto createChapterDto) {
+        log.info("User {} creating chapter  to {}",
+                UserContextHelper.getCurrentUserEmail(), createChapterDto.getName());
+
+        // Only admins can update user roles
+        UserContextHelper.requireAdminRole();
+
         Chapter chapter = chapterDtoMapper.toDomain(createChapterDto);
         Chapter createdChapter = createChapterUseCase.createChapter(chapter);
         ChapterDto responseDto = chapterDtoMapper.toDto(createdChapter);
