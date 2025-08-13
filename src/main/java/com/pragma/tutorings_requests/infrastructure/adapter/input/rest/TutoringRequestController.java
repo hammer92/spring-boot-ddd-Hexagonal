@@ -1,5 +1,6 @@
 package com.pragma.tutorings_requests.infrastructure.adapter.input.rest;
 
+import com.pragma.shared.context.UserContext;
 import com.pragma.shared.dto.OkResponseDto;
 import com.pragma.tutorings_requests.domain.model.TutoringRequest;
 import com.pragma.tutorings_requests.domain.port.input.CreateTutoringRequestUseCase;
@@ -10,6 +11,8 @@ import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.Tutor
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.TutoringRequestFilterDto;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.UpdateTutoringRequestStatusDto;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.mapper.TutoringRequestDtoMapper;
+import com.pragma.usuarios.domain.model.User;
+import com.pragma.usuarios.domain.model.enums.RolUsuario;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,20 +39,25 @@ public class TutoringRequestController {
             @Valid @RequestBody CreateTutoringRequestDto createTutoringRequestDto) {
         
         try {
-            log.info("Creando solicitud de tutoría: {}", createTutoringRequestDto);
+            User currentUser = getCurrentUserOrThrow();
+            log.info("User {} creating tutoring request for skills: {}", 
+                    currentUser.getEmail(), createTutoringRequestDto.getSkillIds());
+            
+            // Set the current user as the tutee
+            createTutoringRequestDto.setTuteeId(currentUser.getId());
             
             TutoringRequest tutoringRequest = tutoringRequestDtoMapper.toModel(createTutoringRequestDto);
-
             TutoringRequest createdRequest = createTutoringRequestUseCase.createTutoringRequest(tutoringRequest);
             TutoringRequestDto responseDto = tutoringRequestDtoMapper.toDto(createdRequest);
             
-            log.info("Solicitud de tutoría creada con ID: {}", createdRequest.getId());
+            log.info("User {} successfully created tutoring request with ID: {}", 
+                    currentUser.getEmail(), createdRequest.getId());
             
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(OkResponseDto.of("Solicitud de tutoría creada exitosamente", responseDto));
         } catch (Exception e) {
-            log.error("Error al crear solicitud de tutoría", e);
+            log.error("Error creating tutoring request", e);
             throw e;
         }
     }
@@ -60,25 +68,34 @@ public class TutoringRequestController {
             @Valid @RequestBody UpdateTutoringRequestStatusDto updateStatusDto) {
         
         try {
-            log.info("Actualizando estado de solicitud de tutoría con ID: {} a estado: {}", 
-                    requestId, updateStatusDto.getStatus());
+            User currentUser = getCurrentUserOrThrow();
+            log.info("User {} updating tutoring request {} status to: {}", 
+                    currentUser.getEmail(), requestId, updateStatusDto.getStatus());
+            
+            // Only admins can update tutoring request status
+            if (currentUser.getRol() != RolUsuario.Administrador) {
+                log.warn("User {} attempted to update tutoring request status without admin privileges", 
+                        currentUser.getEmail());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(OkResponseDto.of("No tiene permisos para actualizar el estado de solicitudes", null));
+            }
             
             TutoringRequest updatedRequest = updateTutoringRequestStatusUseCase
                     .updateStatus(requestId, updateStatusDto.getStatus());
             
             TutoringRequestDto responseDto = tutoringRequestDtoMapper.toDto(updatedRequest);
             
-            log.info("Estado de solicitud de tutoría actualizado exitosamente a: {}", 
-                    updatedRequest.getRequestStatus());
+            log.info("User {} successfully updated tutoring request {} status to: {}", 
+                    currentUser.getEmail(), requestId, updatedRequest.getRequestStatus());
             
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(OkResponseDto.of("Estado de solicitud de tutoría actualizado exitosamente", responseDto));
         } catch (IllegalArgumentException | IllegalStateException e) {
-            log.error("Error de validación al actualizar estado de solicitud: {}", e.getMessage());
+            log.error("Validation error updating tutoring request status: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Error al actualizar estado de solicitud de tutoría", e);
+            log.error("Error updating tutoring request status", e);
             throw e;
         }
     }
@@ -88,9 +105,20 @@ public class TutoringRequestController {
             TutoringRequestFilterDto filterDto) {
         
         try {
-            log.info("Obteniendo solicitudes de tutoría con filtros: {}", filterDto);
+            User currentUser = getCurrentUserOrThrow();
+            log.info("User {} retrieving tutoring requests with filters: {}", 
+                    currentUser.getEmail(), filterDto);
             
             List<TutoringRequest> requests;
+            
+            // Non-admin users can only see their own requests
+            if (currentUser.getRol() != RolUsuario.Administrador) {
+                log.debug("Non-admin user {} filtering requests to own requests only", currentUser.getEmail());
+                if (filterDto == null) {
+                    filterDto = new TutoringRequestFilterDto();
+                }
+                filterDto.setTuteeId(currentUser.getId());
+            }
             
             if (filterDto == null) {
                 requests = getTutoringRequestsUseCase.getAllTutoringRequests();
@@ -106,14 +134,52 @@ public class TutoringRequestController {
                     .map(tutoringRequestDtoMapper::toDto)
                     .collect(Collectors.toList());
             
-            log.info("Se encontraron {} solicitudes de tutoría", responseDtos.size());
+            log.info("User {} retrieved {} tutoring requests", currentUser.getEmail(), responseDtos.size());
             
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(OkResponseDto.of("Solicitudes de tutoría obtenidas exitosamente", responseDtos));
         } catch (Exception e) {
-            log.error("Error al obtener solicitudes de tutoría", e);
+            log.error("Error retrieving tutoring requests", e);
             throw e;
         }
+    }
+    
+    @GetMapping("/my-requests")
+    public ResponseEntity<OkResponseDto<List<TutoringRequestDto>>> getMyTutoringRequests() {
+        try {
+            User currentUser = getCurrentUserOrThrow();
+            log.info("User {} retrieving own tutoring requests", currentUser.getEmail());
+            
+            List<TutoringRequest> requests = getTutoringRequestsUseCase.getTutoringRequestsWithFilters(
+                    currentUser.getId(), null, null, null);
+            
+            List<TutoringRequestDto> responseDtos = requests.stream()
+                    .map(tutoringRequestDtoMapper::toDto)
+                    .collect(Collectors.toList());
+            
+            log.info("User {} has {} tutoring requests", currentUser.getEmail(), responseDtos.size());
+            
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(OkResponseDto.of("Mis solicitudes de tutoría obtenidas exitosamente", responseDtos));
+        } catch (Exception e) {
+            log.error("Error retrieving user's own tutoring requests", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Gets the current authenticated user from UserContext.
+     * 
+     * @return the current user
+     * @throws IllegalStateException if no user is authenticated
+     */
+    private User getCurrentUserOrThrow() {
+        if (!UserContext.hasCurrentUser()) {
+            log.error("No authenticated user found in context");
+            throw new IllegalStateException("No authenticated user found");
+        }
+        return UserContext.getCurrentUser();
     }
 }

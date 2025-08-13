@@ -31,20 +31,20 @@ public class ChapterServiceTest {
 
     /**
      * Test the findChapterById method when the chapter is not found.
-     * This test verifies that a RuntimeException is thrown when attempting to find a chapter with a non-existent ID.
+     * This test verifies that an empty Optional is returned when attempting to find a chapter with a non-existent ID.
      */
     @Test
     public void testFindChapterById_ChapterNotFound() {
         // Arrange
         String nonExistentId = "non-existent-id";
-        String errorMessage = "Chapter no encontrado con id:";
         when(chapterRepository.findById(nonExistentId)).thenReturn(Optional.empty());
-        when(mockmessageService.getMessage("chapter.not.found")).thenReturn(errorMessage);
 
-       
-        // Act & Assert
-        assertThrows(RuntimeException.class, 
-            () -> chapterService.findChapterById(nonExistentId));
+        // Act
+        Optional<Chapter> result = chapterService.findChapterById(nonExistentId);
+
+        // Assert
+        assertFalse(result.isPresent());
+        verify(chapterRepository).findById(nonExistentId);
     }
 
     /**

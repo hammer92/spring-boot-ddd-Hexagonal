@@ -135,8 +135,7 @@ class TutoringPersistenceAdapterTest {
     @Test
     void countActiveTutoringsByTutorId_Success() {
         // Arrange
-        when(userRepository.findById("tutor-id")).thenReturn(Optional.of(tutorEntity));
-        when(tutoringRepository.countByTutorIdAndStatus(tutorEntity.getId(), TutoringStatus.Activa)).thenReturn(3L);
+        when(tutoringRepository.countByTutorIdAndStatus("tutor-id", TutoringStatus.Activa)).thenReturn(3L);
 
         // Act
         Long result = tutoringPersistenceAdapter.countActiveTutoringByTutorId("tutor-id");
@@ -148,13 +147,12 @@ class TutoringPersistenceAdapterTest {
     @Test
     void countActiveTutoringsByTutorId_TutorNotFound() {
         // Arrange
-        when(userRepository.findById("tutor-id")).thenReturn(Optional.empty());
+        when(tutoringRepository.countByTutorIdAndStatus("tutor-id", TutoringStatus.Activa)).thenReturn(0L);
 
         // Act
         Long result = tutoringPersistenceAdapter.countActiveTutoringByTutorId("tutor-id");
 
         // Assert
         assertEquals(0, result);
-        verify(tutoringRepository, never()).countByTutorIdAndStatus(String.valueOf(any(UsersEntity.class)), any(TutoringStatus.class));
     }
 }

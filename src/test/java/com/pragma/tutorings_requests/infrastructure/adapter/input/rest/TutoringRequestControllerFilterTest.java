@@ -1,11 +1,13 @@
 package com.pragma.tutorings_requests.infrastructure.adapter.input.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pragma.shared.context.TestUserContextHelper;
 import com.pragma.tutorings_requests.domain.model.TutoringRequest;
 import com.pragma.tutorings_requests.domain.model.enums.RequestStatus;
 import com.pragma.tutorings_requests.domain.port.input.GetTutoringRequestsUseCase;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.TutoringRequestDto;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.mapper.TutoringRequestDtoMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,6 +75,15 @@ class TutoringRequestControllerFilterTest {
         tutoringRequestDto2.setId(tutoringRequest2.getId());
         tutoringRequestDto2.setRequestStatus(RequestStatus.Aprobada);
         tutoringRequestDto2.setSkills(Arrays.asList());
+        
+        // Set up user context for authentication
+        TestUserContextHelper.setTestUserContext();
+    }
+    
+    @AfterEach
+    void tearDown() {
+        // Clean up user context after each test
+        TestUserContextHelper.clearUserContext();
     }
 
     @Test

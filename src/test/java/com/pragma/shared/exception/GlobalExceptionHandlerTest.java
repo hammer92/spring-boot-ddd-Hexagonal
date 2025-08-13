@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.context.request.WebRequest;
 
 import com.pragma.shared.dto.ErrorResponseDto;
 import com.pragma.shared.security.exception.AuthenticationException;
@@ -54,7 +55,10 @@ public class GlobalExceptionHandlerTest {
         when(messageService.getMessage("general.error", testException.getMessage()))
             .thenReturn(expectedErrorMessage);
 
-        ResponseEntity<ErrorResponseDto> response = globalExceptionHandler.handleGenericException(testException);
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
+        
+        ResponseEntity<ErrorResponseDto> response = globalExceptionHandler.handleGenericException(testException, webRequest);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -77,7 +81,10 @@ public class GlobalExceptionHandlerTest {
         when(messageService.getMessage("general.error", testException.getMessage())).thenReturn(expectedErrorMessage);
 
         // Act
-        ResponseEntity<ErrorResponseDto> response = handler.handleGenericException(testException);
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
+        
+        ResponseEntity<ErrorResponseDto> response = handler.handleGenericException(testException, webRequest);
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -214,8 +221,10 @@ public class GlobalExceptionHandlerTest {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         String errorMessage = "Authorization header is required";
         MissingAuthorizationException ex = new MissingAuthorizationException(errorMessage);
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
-        ResponseEntity<ErrorResponseDto> response = handler.handleMissingAuthorizationException(ex);
+        ResponseEntity<ErrorResponseDto> response = handler.handleMissingAuthorizationException(ex, webRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -232,8 +241,10 @@ public class GlobalExceptionHandlerTest {
     public void test_handleMissingAuthorizationException_withDefaultMessage() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         MissingAuthorizationException ex = new MissingAuthorizationException();
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
-        ResponseEntity<ErrorResponseDto> response = handler.handleMissingAuthorizationException(ex);
+        ResponseEntity<ErrorResponseDto> response = handler.handleMissingAuthorizationException(ex, webRequest);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -250,8 +261,10 @@ public class GlobalExceptionHandlerTest {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         String errorMessage = "Invalid authorization header format";
         InvalidAuthorizationException ex = new InvalidAuthorizationException(errorMessage);
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
-        ResponseEntity<ErrorResponseDto> response = handler.handleInvalidAuthorizationException(ex);
+        ResponseEntity<ErrorResponseDto> response = handler.handleInvalidAuthorizationException(ex, webRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -268,8 +281,10 @@ public class GlobalExceptionHandlerTest {
     public void test_handleInvalidAuthorizationException_withDefaultMessage() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         InvalidAuthorizationException ex = new InvalidAuthorizationException();
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
-        ResponseEntity<ErrorResponseDto> response = handler.handleInvalidAuthorizationException(ex);
+        ResponseEntity<ErrorResponseDto> response = handler.handleInvalidAuthorizationException(ex, webRequest);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -286,8 +301,10 @@ public class GlobalExceptionHandlerTest {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         String errorMessage = "User not registered in the system";
         UserNotFoundException ex = new UserNotFoundException(errorMessage);
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
-        ResponseEntity<ErrorResponseDto> response = handler.handleUserNotFoundException(ex);
+        ResponseEntity<ErrorResponseDto> response = handler.handleUserNotFoundException(ex, webRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -304,8 +321,10 @@ public class GlobalExceptionHandlerTest {
     public void test_handleUserNotFoundException_withDefaultMessage() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         UserNotFoundException ex = new UserNotFoundException();
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
-        ResponseEntity<ErrorResponseDto> response = handler.handleUserNotFoundException(ex);
+        ResponseEntity<ErrorResponseDto> response = handler.handleUserNotFoundException(ex, webRequest);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -322,8 +341,10 @@ public class GlobalExceptionHandlerTest {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         String googleUserId = "google123";
         UserNotFoundException ex = new UserNotFoundException(googleUserId, true);
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
-        ResponseEntity<ErrorResponseDto> response = handler.handleUserNotFoundException(ex);
+        ResponseEntity<ErrorResponseDto> response = handler.handleUserNotFoundException(ex, webRequest);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -344,7 +365,10 @@ public class GlobalExceptionHandlerTest {
         // Create a concrete implementation of AuthenticationException for testing
         AuthenticationException ex = new AuthenticationException(errorMessage) {};
 
-        ResponseEntity<ErrorResponseDto> response = handler.handleAuthenticationException(ex);
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
+        
+        ResponseEntity<ErrorResponseDto> response = handler.handleAuthenticationException(ex, webRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -362,19 +386,22 @@ public class GlobalExceptionHandlerTest {
     public void test_authenticationExceptionPrecedence() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         
+        WebRequest webRequest = mock(WebRequest.class);
+        when(webRequest.getDescription(false)).thenReturn("uri=/test");
+        
         // Test that MissingAuthorizationException is handled by its specific handler
         MissingAuthorizationException missingEx = new MissingAuthorizationException();
-        ResponseEntity<ErrorResponseDto> missingResponse = handler.handleMissingAuthorizationException(missingEx);
+        ResponseEntity<ErrorResponseDto> missingResponse = handler.handleMissingAuthorizationException(missingEx, webRequest);
         assertEquals(HttpStatus.UNAUTHORIZED, missingResponse.getStatusCode());
         
         // Test that InvalidAuthorizationException is handled by its specific handler
         InvalidAuthorizationException invalidEx = new InvalidAuthorizationException();
-        ResponseEntity<ErrorResponseDto> invalidResponse = handler.handleInvalidAuthorizationException(invalidEx);
+        ResponseEntity<ErrorResponseDto> invalidResponse = handler.handleInvalidAuthorizationException(invalidEx, webRequest);
         assertEquals(HttpStatus.UNAUTHORIZED, invalidResponse.getStatusCode());
         
         // Test that UserNotFoundException is handled by its specific handler
         UserNotFoundException userNotFoundEx = new UserNotFoundException();
-        ResponseEntity<ErrorResponseDto> userNotFoundResponse = handler.handleUserNotFoundException(userNotFoundEx);
+        ResponseEntity<ErrorResponseDto> userNotFoundResponse = handler.handleUserNotFoundException(userNotFoundEx, webRequest);
         assertEquals(HttpStatus.FORBIDDEN, userNotFoundResponse.getStatusCode());
     }
 

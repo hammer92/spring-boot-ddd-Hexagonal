@@ -1,6 +1,7 @@
 package com.pragma.tutorings_requests.infrastructure.adapter.input.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pragma.shared.context.TestUserContextHelper;
 import com.pragma.shared.dto.OkResponseDto;
 import com.pragma.tutorings_requests.domain.model.TutoringRequest;
 import com.pragma.tutorings_requests.domain.model.enums.RequestStatus;
@@ -10,6 +11,7 @@ import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.Creat
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.TutoringRequestDto;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.UpdateTutoringRequestStatusDto;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.mapper.TutoringRequestDtoMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,6 +70,15 @@ class TutoringRequestControllerTest {
         tutoringRequestDto = new TutoringRequestDto();
         tutoringRequestDto.setId(requestId);
         tutoringRequestDto.setRequestStatus(RequestStatus.Enviada);
+        
+        // Set up user context for authentication
+        TestUserContextHelper.setTestUserContext();
+    }
+    
+    @AfterEach
+    void tearDown() {
+        // Clean up user context after each test
+        TestUserContextHelper.clearUserContext();
     }
 
     @Test

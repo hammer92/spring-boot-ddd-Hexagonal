@@ -6,8 +6,10 @@ import com.pragma.feedbacks.domain.port.input.CreateFeedbackUseCase;
 import com.pragma.feedbacks.infrastructure.adapter.input.rest.dto.CreateFeedbackDto;
 import com.pragma.feedbacks.infrastructure.adapter.input.rest.dto.FeedbackDto;
 import com.pragma.feedbacks.infrastructure.adapter.input.rest.mapper.FeedbackDtoMapper;
+import com.pragma.shared.context.TestUserContextHelper;
 import com.pragma.tutorings.domain.model.Tutoring;
 import com.pragma.usuarios.domain.model.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,6 +79,15 @@ class FeedbackControllerTest {
         feedbackDto.setScore("5");
         feedbackDto.setComments("Excelente tutoría");
         feedbackDto.setEvaluationDate(new Date());
+        
+        // Set up user context for authentication
+        TestUserContextHelper.setTestUserContext();
+    }
+    
+    @AfterEach
+    void tearDown() {
+        // Clean up user context after each test
+        TestUserContextHelper.clearUserContext();
     }
 
     @Test

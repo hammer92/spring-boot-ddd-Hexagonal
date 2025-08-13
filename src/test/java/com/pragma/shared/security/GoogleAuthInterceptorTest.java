@@ -40,6 +40,9 @@ class GoogleAuthInterceptorTest {
     @Mock
     private HttpServletResponse response;
 
+    @Mock
+    private com.pragma.shared.config.AuthenticationProperties authProperties;
+
     @InjectMocks
     private GoogleAuthInterceptor googleAuthInterceptor;
 
@@ -59,6 +62,9 @@ class GoogleAuthInterceptorTest {
         testUser.setRol(RolUsuario.Tutorado);
         testUser.setActiveTutoringLimit(0);
 
+        // Mock AuthenticationProperties
+        when(authProperties.getHeaderName()).thenReturn(AUTHORIZATION_HEADER);
+
         // Clear user context before each test
         UserContext.clear();
     }
@@ -72,7 +78,9 @@ class GoogleAuthInterceptorTest {
     @Test
     void preHandle_WithValidGoogleId_ShouldReturnTrueAndSetUserContext() throws Exception {
         // Arrange
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(TEST_GOOGLE_USER_ID);
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(TEST_GOOGLE_USER_ID);
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(userService.findUserByGoogleId(TEST_GOOGLE_USER_ID)).thenReturn(Optional.of(testUser));
 
         // Act
@@ -87,7 +95,9 @@ class GoogleAuthInterceptorTest {
     @Test
     void preHandle_WithMissingAuthorizationHeader_ShouldThrowMissingAuthorizationException() {
         // Arrange
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(null);
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(null);
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(messageService.getMessage(anyString(), anyString())).thenReturn("Authorization header is required");
 
         // Act & Assert
@@ -105,7 +115,9 @@ class GoogleAuthInterceptorTest {
     @Test
     void preHandle_WithEmptyAuthorizationHeader_ShouldThrowInvalidAuthorizationException() {
         // Arrange
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("");
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("");
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(messageService.getMessage(anyString(), anyString())).thenReturn("Authorization header cannot be empty");
 
         // Act & Assert
@@ -123,7 +135,9 @@ class GoogleAuthInterceptorTest {
     @Test
     void preHandle_WithWhitespaceOnlyAuthorizationHeader_ShouldThrowInvalidAuthorizationException() {
         // Arrange
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("   ");
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("   ");
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(messageService.getMessage(anyString(), anyString())).thenReturn("Authorization header cannot be empty");
 
         // Act & Assert
@@ -141,7 +155,9 @@ class GoogleAuthInterceptorTest {
     @Test
     void preHandle_WithUserNotFound_ShouldThrowUserNotFoundException() {
         // Arrange
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(TEST_GOOGLE_USER_ID);
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(TEST_GOOGLE_USER_ID);
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(userService.findUserByGoogleId(TEST_GOOGLE_USER_ID)).thenReturn(Optional.empty());
         when(messageService.getMessage(anyString(), anyString())).thenReturn("User not registered in the system");
 
@@ -160,7 +176,9 @@ class GoogleAuthInterceptorTest {
     @Test
     void preHandle_WithDatabaseError_ShouldThrowRuntimeException() {
         // Arrange
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(TEST_GOOGLE_USER_ID);
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(TEST_GOOGLE_USER_ID);
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(userService.findUserByGoogleId(TEST_GOOGLE_USER_ID))
             .thenThrow(new RuntimeException("Database connection failed"));
         when(messageService.getMessage(anyString(), anyString())).thenReturn("Internal server error occurred");
@@ -181,7 +199,9 @@ class GoogleAuthInterceptorTest {
     void preHandle_WithValidGoogleIdWithWhitespace_ShouldTrimAndProcess() throws Exception {
         // Arrange
         String googleIdWithWhitespace = "  " + TEST_GOOGLE_USER_ID + "  ";
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(googleIdWithWhitespace);
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(googleIdWithWhitespace);
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(userService.findUserByGoogleId(TEST_GOOGLE_USER_ID)).thenReturn(Optional.of(testUser));
 
         // Act
@@ -235,7 +255,9 @@ class GoogleAuthInterceptorTest {
     @Test
     void preHandle_ShouldLogSuccessfulAuthentication() throws Exception {
         // Arrange
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(TEST_GOOGLE_USER_ID);
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(TEST_GOOGLE_USER_ID);
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(userService.findUserByGoogleId(TEST_GOOGLE_USER_ID)).thenReturn(Optional.of(testUser));
 
         // Act
@@ -251,7 +273,9 @@ class GoogleAuthInterceptorTest {
     @Test
     void preHandle_ShouldLogAuthenticationFailure() {
         // Arrange
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(null);
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(null);
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(messageService.getMessage(anyString(), anyString())).thenReturn("Authorization header is required");
 
         // Act & Assert
@@ -275,7 +299,9 @@ class GoogleAuthInterceptorTest {
         complexUser.setEmail("complex@example.com");
         complexUser.setRol(RolUsuario.Tutor);
 
-        when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(complexGoogleId);
+        lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(complexGoogleId);
+        lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(userService.findUserByGoogleId(complexGoogleId)).thenReturn(Optional.of(complexUser));
 
         // Act
