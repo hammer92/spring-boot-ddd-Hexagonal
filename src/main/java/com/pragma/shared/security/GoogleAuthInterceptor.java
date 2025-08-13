@@ -42,6 +42,11 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        String clientIp = getClientIpAddress(request);
+        String userAgent = request.getHeader("User-Agent");
+        String requestUri = request.getRequestURI();
+        String method = request.getMethod();
+        
         try {
             // Extract Google ID from Authorization header
             String googleUserId = extractGoogleUserId(request);
@@ -52,15 +57,27 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
             // Set user context for the current thread
             UserContext.setCurrentUser(user);
             
-            // Log successful authentication
-            log.info("User authenticated successfully: googleUserId={}, userId={}, email={}", 
-                    googleUserId, user.getId(), user.getEmail());
+            // Log successful authentication with security context
+            log.info("AUTH_SUCCESS - User authenticated successfully: userId={}, email={}, method={}, uri={}, clientIp={}, userAgent={}", 
+                    user.getId(), user.getEmail(), method, requestUri, clientIp, sanitizeUserAgent(userAgent));
             
             return true;
             
+        } catch (MissingAuthorizationException e) {
+            log.warn("AUTH_FAILURE - Missing authorization header: method={}, uri={}, clientIp={}, userAgent={}, error={}", 
+                    method, requestUri, clientIp, sanitizeUserAgent(userAgent), e.getMessage());
+            throw e;
+        } catch (InvalidAuthorizationException e) {
+            log.warn("AUTH_FAILURE - Invalid authorization header: method={}, uri={}, clientIp={}, userAgent={}, error={}", 
+                    method, requestUri, clientIp, sanitizeUserAgent(userAgent), e.getMessage());
+            throw e;
+        } catch (UserNotFoundException e) {
+            log.warn("AUTH_FAILURE - User not found: method={}, uri={}, clientIp={}, userAgent={}, error={}", 
+                    method, requestUri, clientIp, sanitizeUserAgent(userAgent), e.getMessage());
+            throw e;
         } catch (Exception e) {
-            // Log authentication failure
-            log.warn("Authentication failed for request to {}: {}", request.getRequestURI(), e.getMessage());
+            log.error("AUTH_ERROR - Unexpected authentication error: method={}, uri={}, clientIp={}, userAgent={}, error={}", 
+                    method, requestUri, clientIp, sanitizeUserAgent(userAgent), e.getMessage(), e);
             throw e;
         }
     }
@@ -134,17 +151,55 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
         try {
             Optional<User> userOptional = userService.findUserByGoogleId(googleUserId);
             
-            return userOptional.orElseThrow(() -> new UserNotFoundException(
-                messageService.getMessage("auth.user.not.found", "User not registered in the system")
-            ));
+            return userOptional.orElseThrow(() -> {
+                log.warn("AUTH_FAILURE - User lookup failed: googleUserId exists but user not found in database");
+                return new UserNotFoundException(
+                    messageService.getMessage("auth.user.not.found", "User not registered in the system")
+                );
+            });
             
         } catch (UserNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Database error while looking up user with Google ID: {}", googleUserId, e);
+            log.error("AUTH_ERROR - Database error during user lookup: error={}", e.getMessage(), e);
             throw new RuntimeException(
                 messageService.getMessage("auth.database.error", "Internal server error occurred"), e
             );
         }
+    }
+
+    /**
+     * Extracts the client IP address from the request, considering proxy headers.
+     * 
+     * @param request the HTTP request
+     * @return the client IP address
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (StringUtils.hasText(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (StringUtils.hasText(xRealIp)) {
+            return xRealIp;
+        }
+        
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * Sanitizes the User-Agent header to prevent log injection attacks.
+     * 
+     * @param userAgent the User-Agent header value
+     * @return sanitized User-Agent string
+     */
+    private String sanitizeUserAgent(String userAgent) {
+        if (userAgent == null) {
+            return "unknown";
+        }
+        // Remove potential log injection characters and limit length
+        return userAgent.replaceAll("[\r\n\t]", "_")
+                       .substring(0, Math.min(userAgent.length(), 200));
     }
 }

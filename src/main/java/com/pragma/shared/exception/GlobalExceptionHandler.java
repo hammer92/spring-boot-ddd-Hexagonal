@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import com.pragma.shared.dto.ErrorResponseDto;
 import com.pragma.shared.security.exception.AuthenticationException;
@@ -16,12 +17,14 @@ import com.pragma.shared.security.exception.UserNotFoundException;
 import com.pragma.shared.service.MessageService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class GlobalExceptionHandler {
 
     private final MessageService messageService;
@@ -39,28 +42,36 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(MissingAuthorizationException.class)
-    public ResponseEntity<ErrorResponseDto> handleMissingAuthorizationException(MissingAuthorizationException ex) {
+    public ResponseEntity<ErrorResponseDto> handleMissingAuthorizationException(MissingAuthorizationException ex, WebRequest request) {
+        log.warn("AUTH_EXCEPTION - Missing authorization handled: uri={}, error={}", 
+                getRequestUri(request), ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ErrorResponseDto.of(ex.getMessage()));
     }
 
     @ExceptionHandler(InvalidAuthorizationException.class)
-    public ResponseEntity<ErrorResponseDto> handleInvalidAuthorizationException(InvalidAuthorizationException ex) {
+    public ResponseEntity<ErrorResponseDto> handleInvalidAuthorizationException(InvalidAuthorizationException ex, WebRequest request) {
+        log.warn("AUTH_EXCEPTION - Invalid authorization handled: uri={}, error={}", 
+                getRequestUri(request), ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ErrorResponseDto.of(ex.getMessage()));
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponseDto> handleUserNotFoundException(UserNotFoundException ex) {
+    public ResponseEntity<ErrorResponseDto> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
+        log.warn("AUTH_EXCEPTION - User not found handled: uri={}, error={}", 
+                getRequestUri(request), ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(ErrorResponseDto.of(ex.getMessage()));
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponseDto> handleAuthenticationException(AuthenticationException ex) {
+    public ResponseEntity<ErrorResponseDto> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+        log.warn("AUTH_EXCEPTION - Authentication exception handled: uri={}, error={}", 
+                getRequestUri(request), ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ErrorResponseDto.of(ex.getMessage()));
@@ -74,9 +85,25 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDto> handleGenericException(Exception ex) {
+    public ResponseEntity<ErrorResponseDto> handleGenericException(Exception ex, WebRequest request) {
+        log.error("SYSTEM_ERROR - Unhandled exception: uri={}, error={}", 
+                getRequestUri(request), ex.getMessage(), ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponseDto.of(messageService.getMessage("general.error", ex.getMessage())));
+    }
+
+    /**
+     * Extracts the request URI from WebRequest for logging purposes.
+     * 
+     * @param request the web request
+     * @return the request URI or "unknown" if not available
+     */
+    private String getRequestUri(WebRequest request) {
+        try {
+            return request.getDescription(false).replace("uri=", "");
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 }
