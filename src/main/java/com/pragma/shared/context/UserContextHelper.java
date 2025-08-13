@@ -1,15 +1,26 @@
 package com.pragma.shared.context;
 
+import com.pragma.shared.service.MessageService;
 import com.pragma.usuarios.domain.model.User;
 import com.pragma.usuarios.domain.model.enums.RolUsuario;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Helper utility class for UserContext operations in controllers.
  * Provides common methods for user context validation and authorization checks.
  */
 @Slf4j
+@Component
 public final class UserContextHelper {
+
+    private static MessageService messageService;
+
+    @Autowired
+    public void setMessageService(MessageService messageService) {
+        UserContextHelper.messageService = messageService;
+    }
 
     private UserContextHelper() {
         // Utility class - prevent instantiation
@@ -24,7 +35,7 @@ public final class UserContextHelper {
     public static User getCurrentUserOrThrow() {
         if (!UserContext.hasCurrentUser()) {
             log.error("No authenticated user found in context");
-            throw new IllegalStateException("No authenticated user found");
+            throw new IllegalStateException(messageService.getMessage("auth.user.context.not.found"));
         }
         return UserContext.getCurrentUser();
     }
@@ -65,7 +76,7 @@ public final class UserContextHelper {
         if (currentUser.getRol() != RolUsuario.Administrador) {
             log.warn("User {} attempted to perform admin operation without privileges", 
                     currentUser.getEmail());
-            throw new SecurityException("Admin privileges required");
+            throw new SecurityException(messageService.getMessage("auth.admin.privileges.required"));
         }
     }
 
@@ -81,7 +92,7 @@ public final class UserContextHelper {
             User currentUser = getCurrentUserOrThrow();
             log.warn("User {} attempted to access resource owned by user {} without permission", 
                     currentUser.getEmail(), resourceUserId);
-            throw new SecurityException("Access denied to resource");
+            throw new SecurityException(messageService.getMessage("auth.access.denied"));
         }
     }
 

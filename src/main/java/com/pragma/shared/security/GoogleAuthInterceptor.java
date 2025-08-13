@@ -115,14 +115,14 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
         // Check if authorization header is present
         if (authorizationHeader == null) {
             throw new MissingAuthorizationException(
-                messageService.getMessage("auth.header.missing", headerName + " header is required")
+                messageService.getMessage("auth.header.missing")
             );
         }
         
         // Check if authorization header is not empty and properly formatted
         if (!StringUtils.hasText(authorizationHeader)) {
             throw new InvalidAuthorizationException(
-                messageService.getMessage("auth.header.empty", headerName + " header cannot be empty")
+                messageService.getMessage("auth.header.empty")
             );
         }
         
@@ -133,7 +133,7 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
         // Basic validation - Google user IDs are typically non-empty strings
         if (googleUserId.isEmpty()) {
             throw new InvalidAuthorizationException(
-                messageService.getMessage("auth.header.invalid", "Invalid " + headerName.toLowerCase() + " header format")
+                messageService.getMessage("auth.header.invalid")
             );
         }
         
@@ -154,7 +154,7 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
             return userOptional.orElseThrow(() -> {
                 log.warn("AUTH_FAILURE - User lookup failed: googleUserId exists but user not found in database");
                 return new UserNotFoundException(
-                    messageService.getMessage("auth.user.not.found", "User not registered in the system")
+                    messageService.getMessage("auth.user.not.registered")
                 );
             });
             

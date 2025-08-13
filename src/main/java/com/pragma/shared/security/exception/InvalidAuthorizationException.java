@@ -6,15 +6,6 @@ package com.pragma.shared.security.exception;
  */
 public class InvalidAuthorizationException extends AuthenticationException {
 
-    private static final String DEFAULT_MESSAGE = "Invalid authorization header format";
-
-    /**
-     * Constructs a new InvalidAuthorizationException with the default message.
-     */
-    public InvalidAuthorizationException() {
-        super(DEFAULT_MESSAGE);
-    }
-
     /**
      * Constructs a new InvalidAuthorizationException with the specified detail message.
      *

@@ -1,7 +1,9 @@
 package com.pragma.tutorings_requests.infrastructure.adapter.input.rest;
 
 import com.pragma.shared.context.UserContext;
+import com.pragma.shared.context.UserContextHelper;
 import com.pragma.shared.dto.OkResponseDto;
+import com.pragma.shared.service.MessageService;
 import com.pragma.tutorings_requests.domain.model.TutoringRequest;
 import com.pragma.tutorings_requests.domain.port.input.CreateTutoringRequestUseCase;
 import com.pragma.tutorings_requests.domain.port.input.GetTutoringRequestsUseCase;
@@ -33,19 +35,23 @@ public class TutoringRequestController {
     private final UpdateTutoringRequestStatusUseCase updateTutoringRequestStatusUseCase;
     private final GetTutoringRequestsUseCase getTutoringRequestsUseCase;
     private final TutoringRequestDtoMapper tutoringRequestDtoMapper;
+    private final MessageService messageService;
 
     @PostMapping
     public ResponseEntity<OkResponseDto<TutoringRequestDto>> createTutoringRequest(
             @Valid @RequestBody CreateTutoringRequestDto createTutoringRequestDto) {
         
         try {
-            User currentUser = getCurrentUserOrThrow();
+            User currentUser = UserContextHelper.getCurrentUserOrThrow();
             log.info("User {} creating tutoring request for skills: {}", 
                     currentUser.getEmail(), createTutoringRequestDto.getSkillIds());
             
             // Set the current user as the tutee
-            createTutoringRequestDto.setTuteeId(currentUser.getId());
-            
+            // Non-admin users can only see their own requests
+            if (!UserContextHelper.isCurrentUserAdmin()) {
+                createTutoringRequestDto.setTuteeId(currentUser.getId());
+            }
+
             TutoringRequest tutoringRequest = tutoringRequestDtoMapper.toModel(createTutoringRequestDto);
             TutoringRequest createdRequest = createTutoringRequestUseCase.createTutoringRequest(tutoringRequest);
             TutoringRequestDto responseDto = tutoringRequestDtoMapper.toDto(createdRequest);
@@ -55,7 +61,7 @@ public class TutoringRequestController {
             
             return ResponseEntity
                     .status(HttpStatus.CREATED)
-                    .body(OkResponseDto.of("Solicitud de tutoría creada exitosamente", responseDto));
+                    .body(OkResponseDto.of(messageService.getMessage("tutoringRequest.created.success"), responseDto));
         } catch (Exception e) {
             log.error("Error creating tutoring request", e);
             throw e;
@@ -68,17 +74,11 @@ public class TutoringRequestController {
             @Valid @RequestBody UpdateTutoringRequestStatusDto updateStatusDto) {
         
         try {
-            User currentUser = getCurrentUserOrThrow();
             log.info("User {} updating tutoring request {} status to: {}", 
-                    currentUser.getEmail(), requestId, updateStatusDto.getStatus());
+                    UserContextHelper.getCurrentUserEmail(), requestId, updateStatusDto.getStatus());
             
             // Only admins can update tutoring request status
-            if (currentUser.getRol() != RolUsuario.Administrador) {
-                log.warn("User {} attempted to update tutoring request status without admin privileges", 
-                        currentUser.getEmail());
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(OkResponseDto.of("No tiene permisos para actualizar el estado de solicitudes", null));
-            }
+            UserContextHelper.requireAdminRole();
             
             TutoringRequest updatedRequest = updateTutoringRequestStatusUseCase
                     .updateStatus(requestId, updateStatusDto.getStatus());
@@ -86,11 +86,11 @@ public class TutoringRequestController {
             TutoringRequestDto responseDto = tutoringRequestDtoMapper.toDto(updatedRequest);
             
             log.info("User {} successfully updated tutoring request {} status to: {}", 
-                    currentUser.getEmail(), requestId, updatedRequest.getRequestStatus());
+                    UserContextHelper.getCurrentUserEmail(), requestId, updatedRequest.getRequestStatus());
             
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(OkResponseDto.of("Estado de solicitud de tutoría actualizado exitosamente", responseDto));
+                    .body(OkResponseDto.of(messageService.getMessage("tutoringRequest.status.updated.success"), responseDto));
         } catch (IllegalArgumentException | IllegalStateException e) {
             log.error("Validation error updating tutoring request status: {}", e.getMessage());
             throw e;
@@ -105,14 +105,14 @@ public class TutoringRequestController {
             TutoringRequestFilterDto filterDto) {
         
         try {
-            User currentUser = getCurrentUserOrThrow();
+            User currentUser = UserContextHelper.getCurrentUserOrThrow();
             log.info("User {} retrieving tutoring requests with filters: {}", 
                     currentUser.getEmail(), filterDto);
             
             List<TutoringRequest> requests;
             
             // Non-admin users can only see their own requests
-            if (currentUser.getRol() != RolUsuario.Administrador) {
+            if (!UserContextHelper.isCurrentUserAdmin()) {
                 log.debug("Non-admin user {} filtering requests to own requests only", currentUser.getEmail());
                 if (filterDto == null) {
                     filterDto = new TutoringRequestFilterDto();
@@ -138,7 +138,7 @@ public class TutoringRequestController {
             
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(OkResponseDto.of("Solicitudes de tutoría obtenidas exitosamente", responseDtos));
+                    .body(OkResponseDto.of(messageService.getMessage("tutoringRequest.retrieved.success"), responseDtos));
         } catch (Exception e) {
             log.error("Error retrieving tutoring requests", e);
             throw e;
@@ -148,7 +148,7 @@ public class TutoringRequestController {
     @GetMapping("/my-requests")
     public ResponseEntity<OkResponseDto<List<TutoringRequestDto>>> getMyTutoringRequests() {
         try {
-            User currentUser = getCurrentUserOrThrow();
+            User currentUser = UserContextHelper.getCurrentUserOrThrow();
             log.info("User {} retrieving own tutoring requests", currentUser.getEmail());
             
             List<TutoringRequest> requests = getTutoringRequestsUseCase.getTutoringRequestsWithFilters(
@@ -167,19 +167,5 @@ public class TutoringRequestController {
             log.error("Error retrieving user's own tutoring requests", e);
             throw e;
         }
-    }
-    
-    /**
-     * Gets the current authenticated user from UserContext.
-     * 
-     * @return the current user
-     * @throws IllegalStateException if no user is authenticated
-     */
-    private User getCurrentUserOrThrow() {
-        if (!UserContext.hasCurrentUser()) {
-            log.error("No authenticated user found in context");
-            throw new IllegalStateException("No authenticated user found");
-        }
-        return UserContext.getCurrentUser();
     }
 }

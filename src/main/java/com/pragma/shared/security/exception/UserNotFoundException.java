@@ -6,15 +6,6 @@ package com.pragma.shared.security.exception;
  */
 public class UserNotFoundException extends AuthenticationException {
 
-    private static final String DEFAULT_MESSAGE = "User not registered in the system";
-
-    /**
-     * Constructs a new UserNotFoundException with the default message.
-     */
-    public UserNotFoundException() {
-        super(DEFAULT_MESSAGE);
-    }
-
     /**
      * Constructs a new UserNotFoundException with the specified detail message.
      *
@@ -32,16 +23,5 @@ public class UserNotFoundException extends AuthenticationException {
      */
     public UserNotFoundException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    /**
-     * Constructs a new UserNotFoundException with a message that includes the Google ID.
-     *
-     * @param googleUserId the Google user ID that was not found
-     */
-    public UserNotFoundException(String googleUserId, boolean includeId) {
-        super(includeId ? 
-            String.format("User with Google ID '%s' not registered in the system", googleUserId) : 
-            DEFAULT_MESSAGE);
     }
 }
