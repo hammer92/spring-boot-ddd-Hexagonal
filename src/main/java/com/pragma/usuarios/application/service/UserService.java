@@ -4,6 +4,7 @@ import com.pragma.usuarios.domain.model.User;
 import com.pragma.usuarios.domain.model.enums.RolUsuario;
 import com.pragma.usuarios.domain.port.input.CreateUserUseCase;
 import com.pragma.usuarios.domain.port.input.FindUserByIdUseCase;
+import com.pragma.usuarios.domain.port.input.FindUserByGoogleIdUseCase;
 import com.pragma.usuarios.domain.port.input.UpdateTutoringLimitUseCase;
 import com.pragma.usuarios.domain.port.input.UpdateUserRoleUseCase;
 import com.pragma.usuarios.domain.port.input.UpdateUserUseCase;
@@ -16,7 +17,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService implements CreateUserUseCase, UpdateUserUseCase, FindUserByIdUseCase, 
-        UpdateUserRoleUseCase, UpdateTutoringLimitUseCase {
+        FindUserByGoogleIdUseCase, UpdateUserRoleUseCase, UpdateTutoringLimitUseCase {
 
     private final UserRepository userRepository;
 
@@ -73,5 +74,10 @@ public class UserService implements CreateUserUseCase, UpdateUserUseCase, FindUs
                     existingUser.setActiveTutoringLimit(activeTutoringLimit);
                     return userRepository.save(existingUser);
                 });
+    }
+    
+    @Override
+    public Optional<User> findUserByGoogleId(String googleUserId) {
+        return userRepository.findByGoogleUserId(googleUserId);
     }
 }
