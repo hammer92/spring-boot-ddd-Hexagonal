@@ -14,7 +14,5 @@ public class UpdateUserRequestDto {
     
     private String firstName;
     private String lastName;
-    @NotBlank(message = "Google User ID is required")
-    private String googleUserId;
     private String chapterId;
 }

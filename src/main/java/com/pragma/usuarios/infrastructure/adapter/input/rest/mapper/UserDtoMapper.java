@@ -41,4 +41,12 @@ public abstract class UserDtoMapper {
             chapterOpt.ifPresent(user::setChapter);
         }
     }
+    
+    @AfterMapping
+    protected void findAndSetChapterForUpdate(UpdateUserRequestDto dto, @MappingTarget User user) {
+        if (dto.getChapterId() != null && !dto.getChapterId().isEmpty()) {
+            Optional<Chapter> chapterOpt = findChapterUseCase.findChapterById(dto.getChapterId());
+            chapterOpt.ifPresent(user::setChapter);
+        }
+    }
 }

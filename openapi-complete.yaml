@@ -159,6 +159,32 @@ paths:
         '404':
           description: Usuario no encontrado
 
+  /api/v1/users/me:
+    get:
+      tags:
+        - Users
+      summary: Obtener perfil del usuario actual
+      description: Obtiene la información del usuario autenticado actualmente
+      responses:
+        '200':
+          description: Perfil del usuario actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '401':
+          description: No autorizado - Token de autenticación faltante o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationErrorDto'
+        '403':
+          description: Prohibido - Usuario no registrado en el sistema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationErrorDto'
+
   /api/v1/users/role:
     patch:
       tags:
@@ -912,9 +938,6 @@ components:
           type: string
           format: email
           description: Correo electrónico del usuario
-        googleUserId:
-          type: string
-          description: ID de Google del usuario
         chapter:
           $ref: '#/components/schemas/ChapterDto'
         rol:
