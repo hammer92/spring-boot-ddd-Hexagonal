@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface SpringDataUserRepository extends JpaRepository<UsersEntity, String> {
     Optional<UsersEntity> findByEmail(String email);
+    Optional<UsersEntity> findByGoogleUserId(String googleUserId);
 }

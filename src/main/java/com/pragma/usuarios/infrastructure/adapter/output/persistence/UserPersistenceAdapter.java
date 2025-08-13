@@ -39,6 +39,12 @@ public class UserPersistenceAdapter implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByGoogleUserId(String googleUserId) {
+        return repository.findByGoogleUserId(googleUserId)
+                .map(mapper::toDomain);
+    }
+
+    @Override
     public List<User> findAll() {
         return repository.findAll().stream()
                 .map(mapper::toDomain)

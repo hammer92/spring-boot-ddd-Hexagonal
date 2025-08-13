@@ -42,6 +42,7 @@ class UserPersistenceAdapterTest {
         testUser.setFirstName("John");
         testUser.setLastName("Doe");
         testUser.setEmail("john.doe@pragma.com");
+        testUser.setGoogleUserId("google123");
         testUser.setChapter(chapter);
         testUser.setRol(RolUsuario.Tutorado);
         testUser.setActiveTutoringLimit(0);
@@ -51,6 +52,7 @@ class UserPersistenceAdapterTest {
         testUserEntity.setFirstName("John");
         testUserEntity.setLastName("Doe");
         testUserEntity.setEmail("john.doe@pragma.com");
+        testUserEntity.setGoogleUserId("google123");
     }
 
     @Test
@@ -76,6 +78,35 @@ class UserPersistenceAdapterTest {
 
         // Act
         Optional<User> result = adapter.findById("nonexistent");
+
+        // Assert
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void findByGoogleUserId_WhenUserExists_ShouldReturnUser() {
+        // Arrange
+        when(repository.findByGoogleUserId("google123")).thenReturn(Optional.of(testUserEntity));
+        when(mapper.toDomain(testUserEntity)).thenReturn(testUser);
+
+        // Act
+        Optional<User> result = adapter.findByGoogleUserId("google123");
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals("1", result.get().getId());
+        assertEquals("John", result.get().getFirstName());
+        assertEquals("Doe", result.get().getLastName());
+        assertEquals("google123", result.get().getGoogleUserId());
+    }
+
+    @Test
+    void findByGoogleUserId_WhenUserDoesNotExist_ShouldReturnEmpty() {
+        // Arrange
+        when(repository.findByGoogleUserId(anyString())).thenReturn(Optional.empty());
+
+        // Act
+        Optional<User> result = adapter.findByGoogleUserId("nonexistent");
 
         // Assert
         assertFalse(result.isPresent());
