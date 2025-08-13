@@ -1,5 +1,6 @@
 package com.pragma.config;
 
+import com.pragma.shared.config.AuthenticationProperties;
 import com.pragma.shared.security.GoogleAuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private final GoogleAuthInterceptor googleAuthInterceptor;
+    private final AuthenticationProperties authProperties;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -24,7 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(googleAuthInterceptor)
-                .addPathPatterns("/api/**") // Apply to all API endpoints
-                .excludePathPatterns("/actuator/**"); // Exclude actuator endpoints (health checks, etc.)
+                .addPathPatterns(authProperties.getIncludePathPatterns().toArray(new String[0]))
+                .excludePathPatterns(authProperties.getExcludePathPatterns().toArray(new String[0]));
     }
 }

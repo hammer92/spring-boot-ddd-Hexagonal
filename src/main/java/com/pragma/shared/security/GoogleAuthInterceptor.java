@@ -1,5 +1,6 @@
 package com.pragma.shared.security;
 
+import com.pragma.shared.config.AuthenticationProperties;
 import com.pragma.shared.context.UserContext;
 import com.pragma.shared.security.exception.InvalidAuthorizationException;
 import com.pragma.shared.security.exception.MissingAuthorizationException;
@@ -19,17 +20,16 @@ import java.util.Optional;
 
 /**
  * Interceptor that handles Google-based authentication for all API requests.
- * Extracts Google user ID from the Authorization header and sets up user context.
+ * Extracts Google user ID from the configured authorization header and sets up user context.
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class GoogleAuthInterceptor implements HandlerInterceptor {
-
-    private static final String AUTHORIZATION_HEADER = "Authorization";
     
     private final UserService userService;
     private final MessageService messageService;
+    private final AuthenticationProperties authProperties;
 
     /**
      * Pre-handle method that processes authentication before the request reaches the controller.
@@ -84,27 +84,28 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * Extracts Google user ID from the Authorization header.
+     * Extracts Google user ID from the configured authorization header.
      * 
      * @param request the HTTP request
      * @return the Google user ID
-     * @throws MissingAuthorizationException if the Authorization header is missing
-     * @throws InvalidAuthorizationException if the Authorization header is empty or malformed
+     * @throws MissingAuthorizationException if the authorization header is missing
+     * @throws InvalidAuthorizationException if the authorization header is empty or malformed
      */
     private String extractGoogleUserId(HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
+        String headerName = authProperties.getHeaderName();
+        String authorizationHeader = request.getHeader(headerName);
         
-        // Check if Authorization header is present
+        // Check if authorization header is present
         if (authorizationHeader == null) {
             throw new MissingAuthorizationException(
-                messageService.getMessage("auth.header.missing", "Authorization header is required")
+                messageService.getMessage("auth.header.missing", headerName + " header is required")
             );
         }
         
-        // Check if Authorization header is not empty and properly formatted
+        // Check if authorization header is not empty and properly formatted
         if (!StringUtils.hasText(authorizationHeader)) {
             throw new InvalidAuthorizationException(
-                messageService.getMessage("auth.header.empty", "Authorization header cannot be empty")
+                messageService.getMessage("auth.header.empty", headerName + " header cannot be empty")
             );
         }
         
@@ -115,7 +116,7 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
         // Basic validation - Google user IDs are typically non-empty strings
         if (googleUserId.isEmpty()) {
             throw new InvalidAuthorizationException(
-                messageService.getMessage("auth.header.invalid", "Invalid authorization header format")
+                messageService.getMessage("auth.header.invalid", "Invalid " + headerName.toLowerCase() + " header format")
             );
         }
         
