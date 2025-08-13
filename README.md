@@ -234,6 +234,13 @@ Gestiona las sesiones individuales dentro de una tutoría, con estados:
 
 Permite a los usuarios proporcionar evaluaciones y comentarios sobre las tutorías.
 
+### 8. Estadísticas (Statistics)
+
+Proporciona métricas y estadísticas del sistema para dashboards administrativos, incluyendo:
+- Solicitudes por estado
+- Tutorías por estado
+- Tutores activos por capítulo
+
 ## Flujos Principales
 
 ### Flujo de Solicitud y Asignación de Tutoría
@@ -275,35 +282,67 @@ Permite a los usuarios proporcionar evaluaciones y comentarios sobre las tutorí
    ```
 
 3. Ejecutar la aplicación:
+   
+   **Desarrollo local (SQLite):**
    ```bash
-   mvn spring-boot:run
+   mvn spring-boot:run -Dspring-boot.run.profiles=local
+   ```
+   
+   **Desarrollo con MySQL:**
+   ```bash
+   mvn spring-boot:run -Dspring-boot.run.profiles=dev
+   ```
+   
+   **Script de desarrollo:**
+   ```bash
+   ./run-dev.sh
    ```
 
 ### Configuración con Docker
 
 También puedes ejecutar la aplicación usando Docker:
 
+**Usando Docker Compose (Recomendado):**
+```bash
+# Levantar toda la infraestructura (MySQL + App)
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+
+# Detener servicios
+docker-compose down
+```
+
+**Usando Docker directamente:**
 ```bash
 # Construir la imagen
 docker build -t sistematutorias .
-```
 
-```bash
 # Ejecutar el contenedor
-docker run -p 8080:8080 -v sistematutorias-data:/data sistematutorias
+docker run -p 8080:8080 sistematutorias
 ```
 
-```bash
-# Usando docker-compose
-docker-compose up -d
-```
+**Configuración de Base de Datos:**
+- **Local**: SQLite (archivo `mydatabase.db`)
+- **Desarrollo**: MySQL 8.0 con Docker Compose
+- **Variables de entorno**: Configurables para diferentes entornos
 
 ## API REST
 
-La API REST está documentada con OpenAPI. Puedes acceder a la documentación en:
-```
-http://localhost:8080/swagger-ui.html
-```
+La API REST está completamente documentada con OpenAPI 3.0. La documentación incluye:
+- Especificaciones completas de endpoints
+- Esquemas de datos
+- Ejemplos de request/response
+- Códigos de estado HTTP
+- Autenticación con Google ID
+
+**Acceso a la documentación:**
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI Spec**: Ver archivo `openapi-complete.yaml`
+
+**Autenticación:**
+La API utiliza autenticación basada en Google User ID enviado en el header `Authorization`.
 
 ### Endpoints Principales
 
@@ -314,32 +353,77 @@ http://localhost:8080/swagger-ui.html
 - **Tutorías**: `/api/v1/tutorings`
 - **Sesiones de Tutoría**: `/api/v1/tutoring-sessions`
 - **Retroalimentación**: `/api/v1/feedbacks`
+- **Estadísticas**: `/api/v1/statistics`
+- **Monitoreo**: `/actuator/health`
 
-## Pruebas
+## Pruebas y Calidad de Código
 
-El proyecto incluye pruebas unitarias para cada componente. Para ejecutar las pruebas:
+El proyecto incluye pruebas unitarias completas y análisis de cobertura:
 
+**Ejecutar pruebas:**
 ```bash
 mvn test
 ```
 
+**Generar reporte de cobertura:**
+```bash
+mvn clean test jacoco:report
+```
+
+**Ver reporte de cobertura:**
+El reporte se genera en `target/site/jacoco/index.html`
+
+**Cobertura actual:**
+- Pruebas unitarias para todos los servicios
+- Pruebas de controladores REST
+- Pruebas de adaptadores de persistencia
+- Pruebas de integración para autenticación
+- Exclusión de mappers automáticos de la cobertura
+
 ## Tecnologías Utilizadas
 
-- **Spring Boot**: Framework principal
+- **Spring Boot 3.5.0**: Framework principal
+- **Java 21**: Versión de Java
 - **Spring Data JPA**: Persistencia de datos
-- **SQLite**: Base de datos
+- **SQLite**: Base de datos para desarrollo local
+- **MySQL 8.0**: Base de datos para producción
 - **Lombok**: Reducción de código boilerplate
-- **MapStruct**: Mapeo entre objetos
+- **MapStruct 1.5.5**: Mapeo entre objetos
+- **Spring Boot Validation**: Validación de datos
+- **Spring Boot Actuator**: Monitoreo y métricas
 - **JUnit 5**: Pruebas unitarias
+- **JaCoCo**: Cobertura de código
 - **Docker**: Contenerización
+- **OpenAPI 3.0**: Documentación de API
 
 ## Notas para Desarrolladores
 
-- El proyecto sigue los principios SOLID y Clean Architecture.
-- Se utiliza el patrón de diseño Repository para el acceso a datos.
-- Los DTOs (Data Transfer Objects) se utilizan para la comunicación entre capas.
-- Los mappers automatizan la conversión entre entidades de dominio y DTOs/entidades de persistencia.
-- La validación de datos se realiza tanto a nivel de API como de dominio.
+### Arquitectura y Patrones
+- El proyecto sigue los principios SOLID y Clean Architecture
+- Implementa Arquitectura Hexagonal (Ports and Adapters)
+- Utiliza el patrón Repository para acceso a datos
+- Separación clara entre capas de dominio, aplicación e infraestructura
+
+### Convenciones de Código
+- DTOs para comunicación entre capas
+- MapStruct para conversiones automáticas
+- Lombok para reducir boilerplate
+- Validación en múltiples niveles (API y dominio)
+- Manejo centralizado de excepciones
+
+### Configuración de Perfiles
+- **local**: SQLite para desarrollo rápido
+- **dev**: MySQL para entorno de desarrollo
+- **test**: Configuración específica para pruebas
+
+### Autenticación y Seguridad
+- Interceptor personalizado para autenticación Google
+- Context de usuario para operaciones autenticadas
+- Configuración flexible de rutas protegidas
+
+### Monitoreo
+- Spring Boot Actuator habilitado
+- Health checks disponibles en `/actuator/health`
 
 ## Contribución
 
