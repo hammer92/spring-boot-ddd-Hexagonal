@@ -19,6 +19,9 @@ import com.pragma.shared.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,6 +80,38 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponseDto.of(ex.getMessage()));
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDto> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
+        log.warn("DATABASE_CONSTRAINT_VIOLATION - Data integrity violation: uri={}, error={}", 
+                getRequestUri(request), ex.getMessage());
+        
+        String userMessage = "Data validation error";
+        if (ex.getMessage() != null) {
+            if (ex.getMessage().contains("UNIQUE constraint failed: users.google_user_id")) {
+                userMessage = "User with this Google ID already exists";
+            } else if (ex.getMessage().contains("UNIQUE constraint failed: users.correo")) {
+                userMessage = "User with this email already exists";
+            } else if (ex.getMessage().contains("UNIQUE constraint failed")) {
+                userMessage = "A record with this information already exists";
+            } else if (ex.getMessage().contains("NOT NULL constraint failed")) {
+                userMessage = "Required field is missing";
+            }
+        }
+        
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ErrorResponseDto.of(userMessage));
+    }
+    
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ErrorResponseDto> handleDataAccessException(DataAccessException ex, WebRequest request) {
+        log.error("DATABASE_ERROR - Data access exception: uri={}, error={}", 
+                getRequestUri(request), ex.getMessage(), ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponseDto.of("Database operation failed"));
+    }
+    
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponseDto> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity

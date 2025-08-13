@@ -68,6 +68,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
+        '409':
+          description: Conflicto - Usuario ya existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+              examples:
+                duplicate_google_id:
+                  summary: Google ID duplicado
+                  value:
+                    message: "User with this Google ID already exists"
+                    timestamp: "2024-01-15T10:30:00Z"
+                duplicate_email:
+                  summary: Email duplicado
+                  value:
+                    message: "User with this email already exists"
+                    timestamp: "2024-01-15T10:30:00Z"
     put:
       tags:
         - Users
