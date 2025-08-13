@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.pragma.shared.dto.ErrorResponseDto;
+import com.pragma.shared.security.exception.AuthenticationException;
+import com.pragma.shared.security.exception.InvalidAuthorizationException;
+import com.pragma.shared.security.exception.MissingAuthorizationException;
+import com.pragma.shared.security.exception.UserNotFoundException;
 import com.pragma.shared.service.MessageService;
 
 import lombok.RequiredArgsConstructor;
@@ -34,6 +38,34 @@ public class GlobalExceptionHandler {
         return ErrorResponseDto.of(messageService.getMessage("general.validation.failed"), errors);
     }
     
+    @ExceptionHandler(MissingAuthorizationException.class)
+    public ResponseEntity<ErrorResponseDto> handleMissingAuthorizationException(MissingAuthorizationException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponseDto.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidAuthorizationException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidAuthorizationException(InvalidAuthorizationException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponseDto.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleUserNotFoundException(UserNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponseDto.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponseDto> handleAuthenticationException(AuthenticationException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponseDto.of(ex.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponseDto> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity
