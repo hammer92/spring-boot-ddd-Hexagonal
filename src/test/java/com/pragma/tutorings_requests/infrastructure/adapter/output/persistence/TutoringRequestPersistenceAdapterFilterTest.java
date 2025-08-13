@@ -67,17 +67,17 @@ class TutoringRequestPersistenceAdapterFilterTest {
         List<TutoringRequestsEntity> entities = Arrays.asList(entity1);
         List<TutoringRequest> expected = Arrays.asList(domain1);
         
-        when(repository.findWithFilters(tuteeId, skillId, RequestStatus.Enviada)).thenReturn(entities);
+        when(repository.findWithFilters(tuteeId, skillId, RequestStatus.Enviada, null)).thenReturn(entities);
         when(mapper.toDomain(entity1)).thenReturn(domain1);
 
         // Act
-        List<TutoringRequest> result = adapter.findWithFilters(tuteeId, skillId, RequestStatus.Enviada);
+        List<TutoringRequest> result = adapter.findWithFilters(tuteeId, skillId, RequestStatus.Enviada, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(expected.get(0).getId(), result.get(0).getId());
-        verify(repository, times(1)).findWithFilters(tuteeId, skillId, RequestStatus.Enviada);
+        verify(repository, times(1)).findWithFilters(tuteeId, skillId, RequestStatus.Enviada, null);
         verify(mapper, times(1)).toDomain(entity1);
     }
 
@@ -87,19 +87,19 @@ class TutoringRequestPersistenceAdapterFilterTest {
         List<TutoringRequestsEntity> entities = Arrays.asList(entity1, entity2);
         List<TutoringRequest> expected = Arrays.asList(domain1, domain2);
         
-        when(repository.findWithFilters(tuteeId, null, null)).thenReturn(entities);
+        when(repository.findWithFilters(tuteeId, null, null, null)).thenReturn(entities);
         when(mapper.toDomain(entity1)).thenReturn(domain1);
         when(mapper.toDomain(entity2)).thenReturn(domain2);
 
         // Act
-        List<TutoringRequest> result = adapter.findWithFilters(tuteeId, null, null);
+        List<TutoringRequest> result = adapter.findWithFilters(tuteeId, null, null, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(expected.get(0).getId(), result.get(0).getId());
         assertEquals(expected.get(1).getId(), result.get(1).getId());
-        verify(repository, times(1)).findWithFilters(tuteeId, null, null);
+        verify(repository, times(1)).findWithFilters(tuteeId, null, null, null);
         verify(mapper, times(1)).toDomain(entity1);
         verify(mapper, times(1)).toDomain(entity2);
     }
@@ -110,19 +110,19 @@ class TutoringRequestPersistenceAdapterFilterTest {
         List<TutoringRequestsEntity> entities = Arrays.asList(entity1, entity2);
         List<TutoringRequest> expected = Arrays.asList(domain1, domain2);
         
-        when(repository.findWithFilters(null, skillId, null)).thenReturn(entities);
+        when(repository.findWithFilters(null, skillId, null, null)).thenReturn(entities);
         when(mapper.toDomain(entity1)).thenReturn(domain1);
         when(mapper.toDomain(entity2)).thenReturn(domain2);
 
         // Act
-        List<TutoringRequest> result = adapter.findWithFilters(null, skillId, null);
+        List<TutoringRequest> result = adapter.findWithFilters(null, skillId, null, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(expected.get(0).getId(), result.get(0).getId());
         assertEquals(expected.get(1).getId(), result.get(1).getId());
-        verify(repository, times(1)).findWithFilters(null, skillId, null);
+        verify(repository, times(1)).findWithFilters(null, skillId, null, null);
         verify(mapper, times(1)).toDomain(entity1);
         verify(mapper, times(1)).toDomain(entity2);
     }
@@ -133,17 +133,17 @@ class TutoringRequestPersistenceAdapterFilterTest {
         List<TutoringRequestsEntity> entities = Arrays.asList(entity1);
         List<TutoringRequest> expected = Arrays.asList(domain1);
         
-        when(repository.findWithFilters(null, null, RequestStatus.Enviada)).thenReturn(entities);
+        when(repository.findWithFilters(null, null, RequestStatus.Enviada, null)).thenReturn(entities);
         when(mapper.toDomain(entity1)).thenReturn(domain1);
 
         // Act
-        List<TutoringRequest> result = adapter.findWithFilters(null, null, RequestStatus.Enviada);
+        List<TutoringRequest> result = adapter.findWithFilters(null, null, RequestStatus.Enviada, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(expected.get(0).getId(), result.get(0).getId());
-        verify(repository, times(1)).findWithFilters(null, null, RequestStatus.Enviada);
+        verify(repository, times(1)).findWithFilters(null, null, RequestStatus.Enviada, null);
         verify(mapper, times(1)).toDomain(entity1);
     }
 
@@ -153,19 +153,19 @@ class TutoringRequestPersistenceAdapterFilterTest {
         List<TutoringRequestsEntity> entities = Arrays.asList(entity1, entity2);
         List<TutoringRequest> expected = Arrays.asList(domain1, domain2);
         
-        when(repository.findWithFilters(null, null, null)).thenReturn(entities);
+        when(repository.findWithFilters(null, null, null, null)).thenReturn(entities);
         when(mapper.toDomain(entity1)).thenReturn(domain1);
         when(mapper.toDomain(entity2)).thenReturn(domain2);
 
         // Act
-        List<TutoringRequest> result = adapter.findWithFilters(null, null, null);
+        List<TutoringRequest> result = adapter.findWithFilters(null, null, null, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(expected.get(0).getId(), result.get(0).getId());
         assertEquals(expected.get(1).getId(), result.get(1).getId());
-        verify(repository, times(1)).findWithFilters(null, null, null);
+        verify(repository, times(1)).findWithFilters(null, null, null, null);
         verify(mapper, times(1)).toDomain(entity1);
         verify(mapper, times(1)).toDomain(entity2);
     }

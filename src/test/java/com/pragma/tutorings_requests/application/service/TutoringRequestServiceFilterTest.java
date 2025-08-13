@@ -84,75 +84,75 @@ class TutoringRequestServiceFilterTest {
     void getTutoringRequestsWithFilters_AllFilters_Success() {
         // Arrange
         List<TutoringRequest> expectedRequests = Arrays.asList(tutoringRequest1);
-        when(tutoringRequestRepository.findWithFilters(tuteeId, skillId, RequestStatus.Enviada))
+        when(tutoringRequestRepository.findWithFilters(tuteeId, skillId, RequestStatus.Enviada, null))
                 .thenReturn(expectedRequests);
 
         // Act
         List<TutoringRequest> result = tutoringRequestService.getTutoringRequestsWithFilters(
-                tuteeId, skillId, RequestStatus.Enviada);
+                tuteeId, skillId, RequestStatus.Enviada, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(expectedRequests, result);
         verify(tutoringRequestRepository, times(1))
-                .findWithFilters(tuteeId, skillId, RequestStatus.Enviada);
+                .findWithFilters(tuteeId, skillId, RequestStatus.Enviada, null);
     }
 
     @Test
     void getTutoringRequestsWithFilters_OnlyTuteeId_Success() {
         // Arrange
         List<TutoringRequest> expectedRequests = Arrays.asList(tutoringRequest1, tutoringRequest2);
-        when(tutoringRequestRepository.findWithFilters(tuteeId, null, null))
+        when(tutoringRequestRepository.findWithFilters(tuteeId, null, null, null))
                 .thenReturn(expectedRequests);
 
         // Act
         List<TutoringRequest> result = tutoringRequestService.getTutoringRequestsWithFilters(
-                tuteeId, null, null);
+                tuteeId, null, null, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(expectedRequests, result);
         verify(tutoringRequestRepository, times(1))
-                .findWithFilters(tuteeId, null, null);
+                .findWithFilters(tuteeId, null, null, null);
     }
 
     @Test
     void getTutoringRequestsWithFilters_OnlySkillId_Success() {
         // Arrange
         List<TutoringRequest> expectedRequests = Arrays.asList(tutoringRequest1, tutoringRequest2);
-        when(tutoringRequestRepository.findWithFilters(null, skillId, null))
+        when(tutoringRequestRepository.findWithFilters(null, skillId, null, null))
                 .thenReturn(expectedRequests);
 
         // Act
         List<TutoringRequest> result = tutoringRequestService.getTutoringRequestsWithFilters(
-                null, skillId, null);
+                null, skillId, null, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(expectedRequests, result);
         verify(tutoringRequestRepository, times(1))
-                .findWithFilters(null, skillId, null);
+                .findWithFilters(null, skillId, null, null);
     }
 
     @Test
     void getTutoringRequestsWithFilters_OnlyStatus_Success() {
         // Arrange
         List<TutoringRequest> expectedRequests = Arrays.asList(tutoringRequest1);
-        when(tutoringRequestRepository.findWithFilters(null, null, RequestStatus.Enviada))
+        when(tutoringRequestRepository.findWithFilters(null, null, RequestStatus.Enviada, null))
                 .thenReturn(expectedRequests);
 
         // Act
         List<TutoringRequest> result = tutoringRequestService.getTutoringRequestsWithFilters(
-                null, null, RequestStatus.Enviada);
+                null, null, RequestStatus.Enviada, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(expectedRequests, result);
         verify(tutoringRequestRepository, times(1))
-                .findWithFilters(null, null, RequestStatus.Enviada);
+                .findWithFilters(null, null, RequestStatus.Enviada, null);
     }
 }

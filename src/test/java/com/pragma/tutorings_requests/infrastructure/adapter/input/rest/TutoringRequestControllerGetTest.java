@@ -102,7 +102,7 @@ class TutoringRequestControllerGetTest {
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1, tutoringRequest2);
         List<TutoringRequestDto> requestDtos = Arrays.asList(tutoringRequestDto1, tutoringRequestDto2);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), isNull(), isNull())).thenReturn(requests);
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), isNull(), isNull(), isNull())).thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest2)).thenReturn(tutoringRequestDto2);
 
@@ -124,7 +124,7 @@ class TutoringRequestControllerGetTest {
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1, tutoringRequest2);
         List<TutoringRequestDto> requestDtos = Arrays.asList(tutoringRequestDto1, tutoringRequestDto2);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(isNull(), eq(skillId), isNull())).thenReturn(requests);
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(isNull(), eq(skillId), isNull(), isNull())).thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest2)).thenReturn(tutoringRequestDto2);
 
@@ -146,7 +146,7 @@ class TutoringRequestControllerGetTest {
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1);
         List<TutoringRequestDto> requestDtos = Arrays.asList(tutoringRequestDto1);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(isNull(), isNull(), eq(RequestStatus.Enviada))).thenReturn(requests);
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(isNull(), isNull(), eq(RequestStatus.Enviada), isNull())).thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
 
         // Act & Assert
@@ -166,7 +166,7 @@ class TutoringRequestControllerGetTest {
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1);
         List<TutoringRequestDto> requestDtos = Arrays.asList(tutoringRequestDto1);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), eq(skillId), eq(RequestStatus.Enviada))).thenReturn(requests);
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), eq(skillId), eq(RequestStatus.Enviada), isNull())).thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
 
         // Act & Assert

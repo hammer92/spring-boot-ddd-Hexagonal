@@ -86,7 +86,7 @@ class TutoringStatusControllerTest {
     @Test
     void completeTutoring_Success() throws Exception {
         // Arrange
-        when(completeTutoringUseCase.completeTutoring(anyString(), anyString())).thenReturn(tutoring);
+        when(completeTutoringUseCase.completeTutoring(anyString(), anyString(), anyString())).thenReturn(tutoring);
         when(tutoringDtoMapper.toDto(tutoring)).thenReturn(tutoringDto);
 
         // Act & Assert

@@ -119,7 +119,7 @@ class TutoringStatusServiceTest {
         });
 
         // Act
-        Tutoring result = tutoringStatusService.completeTutoring("tutoring-id", "tutor-id");
+        Tutoring result = tutoringStatusService.completeTutoring("tutoring-id", "tutor-id", "http://example.com/final-act.pdf");
 
         // Assert
         assertNotNull(result);
@@ -143,7 +143,7 @@ class TutoringStatusServiceTest {
         });
 
         // Act
-        Tutoring result = tutoringStatusService.completeTutoring("tutoring-id", "admin-id");
+        Tutoring result = tutoringStatusService.completeTutoring("tutoring-id", "admin-id", "http://example.com/final-act.pdf");
 
         // Assert
         assertNotNull(result);
@@ -158,7 +158,7 @@ class TutoringStatusServiceTest {
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            tutoringStatusService.completeTutoring("non-existent-id", "tutor-id");
+            tutoringStatusService.completeTutoring("non-existent-id", "tutor-id", "http://example.com/final-act.pdf");
         });
 
         assertEquals("La tutoría no existe", exception.getMessage());
@@ -169,11 +169,10 @@ class TutoringStatusServiceTest {
     void completeTutoring_TutoringNotActive() {
         // Arrange
         when(tutoringRepository.findById("completed-tutoring-id")).thenReturn(Optional.of(completedTutoring));
-        when(findUserByIdUseCase.findUserById("tutor-id")).thenReturn(Optional.of(tutor));
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            tutoringStatusService.completeTutoring("completed-tutoring-id", "tutor-id");
+            tutoringStatusService.completeTutoring("completed-tutoring-id", "tutor-id", "http://example.com/final-act.pdf");
         });
 
         assertEquals("No se puede cambiar el estado de la tutoría porque no está en estado Activa", exception.getMessage());
@@ -188,7 +187,7 @@ class TutoringStatusServiceTest {
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            tutoringStatusService.completeTutoring("tutoring-id", "non-existent-id");
+            tutoringStatusService.completeTutoring("tutoring-id", "non-existent-id", "http://example.com/final-act.pdf");
         });
 
         assertEquals("El usuario no existe", exception.getMessage());
@@ -207,7 +206,7 @@ class TutoringStatusServiceTest {
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            tutoringStatusService.completeTutoring("tutoring-id", "other-tutor-id");
+            tutoringStatusService.completeTutoring("tutoring-id", "other-tutor-id", "http://example.com/final-act.pdf");
         });
 
         assertEquals("No tienes permisos para completar esta tutoría", exception.getMessage());
@@ -226,7 +225,7 @@ class TutoringStatusServiceTest {
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            tutoringStatusService.completeTutoring("tutoring-id", "tutor-id");
+            tutoringStatusService.completeTutoring("tutoring-id", "tutor-id", "http://example.com/final-act.pdf");
         });
 
         assertEquals("No se puede completar la tutoría porque falta el feedback del tutor", exception.getMessage());
@@ -245,7 +244,7 @@ class TutoringStatusServiceTest {
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            tutoringStatusService.completeTutoring("tutoring-id", "tutor-id");
+            tutoringStatusService.completeTutoring("tutoring-id", "tutor-id", "http://example.com/final-act.pdf");
         });
 
         assertEquals("No se puede completar la tutoría porque falta el feedback del tutee", exception.getMessage());
@@ -294,7 +293,6 @@ class TutoringStatusServiceTest {
     void cancelTutoring_TutoringNotActive() {
         // Arrange
         when(tutoringRepository.findById("completed-tutoring-id")).thenReturn(Optional.of(completedTutoring));
-        when(findUserByIdUseCase.findUserById("admin-id")).thenReturn(Optional.of(admin));
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
@@ -302,6 +300,28 @@ class TutoringStatusServiceTest {
         });
 
         assertEquals("No se puede cambiar el estado de la tutoría porque no está en estado Activa", exception.getMessage());
+        verify(tutoringRepository, never()).save(any(Tutoring.class));
+    }
+
+    @Test
+    void completeTutoring_MissingFinalActUrl() {
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tutoringStatusService.completeTutoring("tutoring-id", "tutor-id", null);
+        });
+
+        assertEquals("El acta final es requerida para completar la tutoría", exception.getMessage());
+        verify(tutoringRepository, never()).save(any(Tutoring.class));
+    }
+
+    @Test
+    void completeTutoring_EmptyFinalActUrl() {
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tutoringStatusService.completeTutoring("tutoring-id", "tutor-id", "");
+        });
+
+        assertEquals("El acta final es requerida para completar la tutoría", exception.getMessage());
         verify(tutoringRepository, never()).save(any(Tutoring.class));
     }
 }

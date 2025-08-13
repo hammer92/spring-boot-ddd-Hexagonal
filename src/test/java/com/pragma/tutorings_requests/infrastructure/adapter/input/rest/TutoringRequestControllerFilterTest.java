@@ -80,7 +80,7 @@ class TutoringRequestControllerFilterTest {
         // Arrange
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), eq(skillId), eq(RequestStatus.Enviada)))
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), eq(skillId), eq(RequestStatus.Enviada), isNull()))
                 .thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
 
@@ -102,7 +102,7 @@ class TutoringRequestControllerFilterTest {
         // Arrange
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1, tutoringRequest2);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), eq(skillId), isNull()))
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), eq(skillId), isNull(), isNull()))
                 .thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest2)).thenReturn(tutoringRequestDto2);
@@ -125,7 +125,7 @@ class TutoringRequestControllerFilterTest {
         // Arrange
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), isNull(), eq(RequestStatus.Enviada)))
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), isNull(), eq(RequestStatus.Enviada), isNull()))
                 .thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
 
@@ -146,7 +146,7 @@ class TutoringRequestControllerFilterTest {
         // Arrange
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(isNull(), eq(skillId), eq(RequestStatus.Enviada)))
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(isNull(), eq(skillId), eq(RequestStatus.Enviada), isNull()))
                 .thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
 
