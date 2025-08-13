@@ -7,6 +7,7 @@ import com.pragma.chapter.domain.port.input.GetAllChaptersUseCase;
 import com.pragma.chapter.infrastructure.adapter.input.rest.dto.ChapterDto;
 import com.pragma.chapter.infrastructure.adapter.input.rest.dto.CreateChapterDto;
 import com.pragma.chapter.infrastructure.adapter.input.rest.mapper.ChapterDtoMapper;
+import com.pragma.shared.context.UserContextHelper;
 import com.pragma.shared.dto.OkResponseDto;
 import com.pragma.shared.service.MessageService;
 
@@ -18,6 +19,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -186,27 +188,32 @@ public class ChapterControllerTest {
         when(chapterDtoMapper.toDto(createdChapter)).thenReturn(responseDto);
         when(mockmessageService.getMessage("chapter.created")).thenReturn(messageCreated);
 
-        // Act
-        ResponseEntity<OkResponseDto<ChapterDto>> response = chapterController.postCreate(createChapterDto);
+        // Act & Assert
+        try (MockedStatic<UserContextHelper> mockedUserContext = mockStatic(UserContextHelper.class)) {
+            mockedUserContext.when(UserContextHelper::getCurrentUserEmail).thenReturn("test@example.com");
+            mockedUserContext.when(UserContextHelper::requireAdminRole).thenAnswer(invocation -> null);
+            
+            ResponseEntity<OkResponseDto<ChapterDto>> response = chapterController.postCreate(createChapterDto);
 
-        // Assert
-        verify(chapterDtoMapper).toDomain(createChapterDto);
-        verify(createChapterUseCase).createChapter(chapter);
-        verify(chapterDtoMapper).toDto(createdChapter);
+            // Assert
+            verify(chapterDtoMapper).toDomain(createChapterDto);
+            verify(createChapterUseCase).createChapter(chapter);
+            verify(chapterDtoMapper).toDto(createdChapter);
 
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(messageCreated, response.getBody().getMessage());
-        assertEquals(responseDto, response.getBody().getData());
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertEquals(messageCreated, response.getBody().getMessage());
+            assertEquals(responseDto, response.getBody().getData());
 
-        String expectedLocation = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand("123")
-                .toUriString();
-        assertNotNull(response.getHeaders());
-        assertNotNull(response.getHeaders().getLocation());
-        assertEquals(expectedLocation, response.getHeaders().getLocation().toString());
+            String expectedLocation = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand("123")
+                    .toUriString();
+            assertNotNull(response.getHeaders());
+            assertNotNull(response.getHeaders().getLocation());
+            assertEquals(expectedLocation, response.getHeaders().getLocation().toString());
+        }
     }
 
 }
