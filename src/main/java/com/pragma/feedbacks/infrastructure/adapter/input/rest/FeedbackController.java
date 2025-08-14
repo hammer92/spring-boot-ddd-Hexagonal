@@ -5,7 +5,7 @@ import com.pragma.feedbacks.domain.port.input.CreateFeedbackUseCase;
 import com.pragma.feedbacks.infrastructure.adapter.input.rest.dto.CreateFeedbackDto;
 import com.pragma.feedbacks.infrastructure.adapter.input.rest.dto.FeedbackDto;
 import com.pragma.feedbacks.infrastructure.adapter.input.rest.mapper.FeedbackDtoMapper;
-import com.pragma.shared.context.UserContext;
+import com.pragma.shared.context.UserContextHelper;
 import com.pragma.shared.dto.OkResponseDto;
 import com.pragma.usuarios.domain.model.User;
 import jakarta.validation.Valid;
@@ -29,9 +29,16 @@ public class FeedbackController {
 
     @PostMapping
     public ResponseEntity<OkResponseDto<FeedbackDto>> createFeedback(@Valid @RequestBody CreateFeedbackDto createFeedbackDto) {
-        User currentUser = getCurrentUserOrThrow();
+        User currentUser = UserContextHelper.getCurrentUserOrThrow();
         log.info("User {} creating feedback for tutoring: {}", 
                 currentUser.getEmail(), createFeedbackDto.getTutoringId());
+        
+        // Validate that user can provide feedback (tutors and admins can provide feedback)
+        if (!UserContextHelper.canActAsTutor()) {
+            log.warn("User {} attempted to create feedback without tutor privileges", currentUser.getEmail());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(OkResponseDto.of("No tiene permisos para crear feedback", null));
+        }
         
         // Set the current user as the evaluator
         createFeedbackDto.setEvaluatorId(currentUser.getId());
@@ -46,19 +53,5 @@ public class FeedbackController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(OkResponseDto.of("Feedback creado exitosamente", feedbackDto));
-    }
-    
-    /**
-     * Gets the current authenticated user from UserContext.
-     * 
-     * @return the current user
-     * @throws IllegalStateException if no user is authenticated
-     */
-    private User getCurrentUserOrThrow() {
-        if (!UserContext.hasCurrentUser()) {
-            log.error("No authenticated user found in context");
-            throw new IllegalStateException("No authenticated user found");
-        }
-        return UserContext.getCurrentUser();
     }
 }

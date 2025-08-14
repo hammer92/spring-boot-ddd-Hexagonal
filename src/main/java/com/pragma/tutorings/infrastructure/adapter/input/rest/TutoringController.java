@@ -1,6 +1,6 @@
 package com.pragma.tutorings.infrastructure.adapter.input.rest;
 
-import com.pragma.shared.context.UserContext;
+import com.pragma.shared.context.UserContextHelper;
 import com.pragma.shared.dto.OkResponseDto;
 import com.pragma.tutorings.domain.model.Tutoring;
 import com.pragma.tutorings.domain.port.input.CancelTutoringUseCase;
@@ -33,16 +33,12 @@ public class TutoringController {
 
     @PostMapping
     public ResponseEntity<OkResponseDto<TutoringDto>> createTutoring(@Valid @RequestBody CreateTutoringDto createTutoringDto) {
-        User currentUser = getCurrentUserOrThrow();
+        User currentUser = UserContextHelper.getCurrentUserOrThrow();
         log.info("User {} creating tutoring for request: {} with tutor: {}", 
                 currentUser.getEmail(), createTutoringDto.getTutoringRequestId(), createTutoringDto.getTutorId());
         
         // Only admins can create tutorings
-        if (currentUser.getRol() != RolUsuario.Administrador) {
-            log.warn("User {} attempted to create tutoring without admin privileges", currentUser.getEmail());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(OkResponseDto.of("No tiene permisos para crear tutorías", null));
-        }
+        UserContextHelper.requireAdminRole();
         
         Tutoring tutoring = createTutoringUseCase.createTutoring(
                 createTutoringDto.getTutoringRequestId(),
@@ -64,8 +60,15 @@ public class TutoringController {
             @PathVariable String tutoringId,
             @Valid @RequestBody CompleteTutoringDto completeDto) {
         
-        User currentUser = getCurrentUserOrThrow();
+        User currentUser = UserContextHelper.getCurrentUserOrThrow();
         log.info("User {} completing tutoring: {}", currentUser.getEmail(), tutoringId);
+        
+        // Validate that user can complete tutorings (tutors and admins)
+        if (!UserContextHelper.canActAsTutor()) {
+            log.warn("User {} attempted to complete tutoring without tutor privileges", currentUser.getEmail());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(OkResponseDto.of("No tiene permisos para completar tutorías", null));
+        }
         
         // Set the current user as the one completing the tutoring
         completeDto.setUserId(currentUser.getId());
@@ -86,9 +89,16 @@ public class TutoringController {
             @PathVariable String tutoringId,
             @Valid @RequestBody UpdateTutoringStatusDto updateDto) {
         
-        User currentUser = getCurrentUserOrThrow();
+        User currentUser = UserContextHelper.getCurrentUserOrThrow();
         log.info("User {} canceling tutoring: {} with reason: {}", 
                 currentUser.getEmail(), tutoringId, updateDto.getComments());
+        
+        // Validate that user can cancel tutorings (tutors and admins)
+        if (!UserContextHelper.canActAsTutor()) {
+            log.warn("User {} attempted to cancel tutoring without tutor privileges", currentUser.getEmail());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(OkResponseDto.of("No tiene permisos para cancelar tutorías", null));
+        }
         
         // Set the current user as the one canceling the tutoring
         updateDto.setUserId(currentUser.getId());
@@ -102,19 +112,5 @@ public class TutoringController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(OkResponseDto.of("Tutoría cancelada exitosamente", tutoringDto));
-    }
-    
-    /**
-     * Gets the current authenticated user from UserContext.
-     * 
-     * @return the current user
-     * @throws IllegalStateException if no user is authenticated
-     */
-    private User getCurrentUserOrThrow() {
-        if (!UserContext.hasCurrentUser()) {
-            log.error("No authenticated user found in context");
-            throw new IllegalStateException("No authenticated user found");
-        }
-        return UserContext.getCurrentUser();
     }
 }
