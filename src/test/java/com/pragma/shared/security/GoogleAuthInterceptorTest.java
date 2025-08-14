@@ -62,8 +62,8 @@ class GoogleAuthInterceptorTest {
         testUser.setRol(RolUsuario.Tutorado);
         testUser.setActiveTutoringLimit(0);
 
-        // Mock AuthenticationProperties
-        when(authProperties.getHeaderName()).thenReturn(AUTHORIZATION_HEADER);
+        // Mock AuthenticationProperties - using lenient to avoid unnecessary stubbing errors
+        lenient().when(authProperties.getHeaderName()).thenReturn(AUTHORIZATION_HEADER);
 
         // Clear user context before each test
         UserContext.clear();
@@ -98,7 +98,7 @@ class GoogleAuthInterceptorTest {
         lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn(null);
         lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
         lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        when(messageService.getMessage(anyString(), anyString())).thenReturn("Authorization header is required");
+        when(messageService.getMessage("auth.header.missing")).thenReturn("Authorization header is required");
 
         // Act & Assert
         MissingAuthorizationException exception = assertThrows(
@@ -108,7 +108,7 @@ class GoogleAuthInterceptorTest {
 
         assertEquals("Authorization header is required", exception.getMessage());
         assertNull(UserContext.getCurrentUser());
-        verify(messageService).getMessage("auth.header.missing", "Authorization header is required");
+        verify(messageService).getMessage("auth.header.missing");
         verifyNoInteractions(userService);
     }
 
@@ -118,7 +118,7 @@ class GoogleAuthInterceptorTest {
         lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("");
         lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
         lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        when(messageService.getMessage(anyString(), anyString())).thenReturn("Authorization header cannot be empty");
+        when(messageService.getMessage("auth.header.empty")).thenReturn("Authorization header cannot be empty");
 
         // Act & Assert
         InvalidAuthorizationException exception = assertThrows(
@@ -128,7 +128,7 @@ class GoogleAuthInterceptorTest {
 
         assertEquals("Authorization header cannot be empty", exception.getMessage());
         assertNull(UserContext.getCurrentUser());
-        verify(messageService).getMessage("auth.header.empty", "Authorization header cannot be empty");
+        verify(messageService).getMessage("auth.header.empty");
         verifyNoInteractions(userService);
     }
 
@@ -138,7 +138,7 @@ class GoogleAuthInterceptorTest {
         lenient().when(request.getHeader(AUTHORIZATION_HEADER)).thenReturn("   ");
         lenient().when(request.getHeader("X-Forwarded-For")).thenReturn(null);
         lenient().when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        when(messageService.getMessage(anyString(), anyString())).thenReturn("Authorization header cannot be empty");
+        when(messageService.getMessage("auth.header.empty")).thenReturn("Authorization header cannot be empty");
 
         // Act & Assert
         InvalidAuthorizationException exception = assertThrows(
@@ -148,7 +148,7 @@ class GoogleAuthInterceptorTest {
 
         assertEquals("Authorization header cannot be empty", exception.getMessage());
         assertNull(UserContext.getCurrentUser());
-        verify(messageService).getMessage("auth.header.empty", "Authorization header cannot be empty");
+        verify(messageService).getMessage("auth.header.empty");
         verifyNoInteractions(userService);
     }
 

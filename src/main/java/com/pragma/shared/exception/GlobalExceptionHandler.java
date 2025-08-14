@@ -80,6 +80,15 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponseDto.of(ex.getMessage()));
     }
 
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ErrorResponseDto> handleSecurityException(SecurityException ex, WebRequest request) {
+        log.warn("SECURITY_EXCEPTION - Access denied: uri={}, error={}", 
+                getRequestUri(request), ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponseDto.of(ex.getMessage()));
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDto> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
         log.warn("DATABASE_CONSTRAINT_VIOLATION - Data integrity violation: uri={}, error={}", 

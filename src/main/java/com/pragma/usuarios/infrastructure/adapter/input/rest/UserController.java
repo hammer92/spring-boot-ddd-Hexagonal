@@ -37,6 +37,9 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserDto createUserDto) {
+        // Only admins can create users - check this BEFORE validation
+        UserContextHelper.requireAdminRole();
+        
         log.info("Creating new user: {}", createUserDto.getEmail());
         
         User user = userDtoMapper.toModel(createUserDto);
@@ -71,10 +74,11 @@ public class UserController {
     }
     
     @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser() {
+    public ResponseEntity<com.pragma.shared.dto.OkResponseDto<UserDto>> getCurrentUser() {
         User currentUser = UserContextHelper.getCurrentUserOrThrow();
         log.debug("User {} requesting own profile", currentUser.getEmail());
-        return ResponseEntity.ok(userDtoMapper.toDto(currentUser));
+        UserDto userDto = userDtoMapper.toDto(currentUser);
+        return ResponseEntity.ok(com.pragma.shared.dto.OkResponseDto.of("Usuario obtenido exitosamente", userDto));
     }
     
     @PatchMapping("/role")

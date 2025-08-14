@@ -2,6 +2,7 @@ package com.pragma.tutorings_requests.infrastructure.adapter.input.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pragma.shared.context.TestUserContextHelper;
+import com.pragma.shared.service.MessageService;
 import com.pragma.tutorings_requests.domain.model.TutoringRequest;
 import com.pragma.tutorings_requests.domain.model.enums.RequestStatus;
 import com.pragma.tutorings_requests.domain.port.input.GetTutoringRequestsUseCase;
@@ -38,6 +39,9 @@ class TutoringRequestControllerFilterTest {
 
     @Mock
     private TutoringRequestDtoMapper tutoringRequestDtoMapper;
+
+    @Mock
+    private MessageService messageService;
 
     @InjectMocks
     private TutoringRequestController tutoringRequestController;
@@ -78,6 +82,10 @@ class TutoringRequestControllerFilterTest {
         
         // Set up user context for authentication
         TestUserContextHelper.setTestUserContext();
+        
+        // Mock MessageService behavior
+        when(messageService.getMessage("tutoringRequest.retrieved.success"))
+                .thenReturn("Tutoring requests retrieved successfully");
     }
     
     @AfterEach

@@ -3,6 +3,7 @@ package com.pragma.tutorings_requests.infrastructure.adapter.input.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pragma.shared.context.TestUserContextHelper;
 import com.pragma.shared.dto.OkResponseDto;
+import com.pragma.shared.service.MessageService;
 import com.pragma.tutorings_requests.domain.model.TutoringRequest;
 import com.pragma.tutorings_requests.domain.model.enums.RequestStatus;
 import com.pragma.tutorings_requests.domain.port.input.CreateTutoringRequestUseCase;
@@ -48,6 +49,9 @@ class TutoringRequestControllerTest {
     @Mock
     private TutoringRequestDtoMapper tutoringRequestDtoMapper;
 
+    @Mock
+    private MessageService messageService;
+
     @InjectMocks
     private TutoringRequestController tutoringRequestController;
 
@@ -58,7 +62,13 @@ class TutoringRequestControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(tutoringRequestController).build();
+        // Create a mock GlobalExceptionHandler for testing
+        com.pragma.shared.exception.GlobalExceptionHandler globalExceptionHandler = 
+                new com.pragma.shared.exception.GlobalExceptionHandler(messageService);
+        
+        mockMvc = MockMvcBuilders.standaloneSetup(tutoringRequestController)
+                .setControllerAdvice(globalExceptionHandler)
+                .build();
         objectMapper = new ObjectMapper();
         requestId = UUID.randomUUID().toString();
 
@@ -98,6 +108,8 @@ class TutoringRequestControllerTest {
         when(updateTutoringRequestStatusUseCase.updateStatus(eq(requestId), eq(RequestStatus.Aprobada)))
                 .thenReturn(updatedRequest);
         when(tutoringRequestDtoMapper.toDto(updatedRequest)).thenReturn(updatedDto);
+        when(messageService.getMessage("tutoringRequest.status.updated.success"))
+                .thenReturn("Estado de solicitud de tutoría actualizado exitosamente");
 
         // Act & Assert
         mockMvc.perform(patch("/api/v1/tutoring-requests/{requestId}/status", requestId)
@@ -125,6 +137,8 @@ class TutoringRequestControllerTest {
         when(updateTutoringRequestStatusUseCase.updateStatus(eq(requestId), eq(RequestStatus.Rechazada)))
                 .thenReturn(updatedRequest);
         when(tutoringRequestDtoMapper.toDto(updatedRequest)).thenReturn(updatedDto);
+        when(messageService.getMessage("tutoringRequest.status.updated.success"))
+                .thenReturn("Estado de solicitud de tutoría actualizado exitosamente");
 
         // Act & Assert
         mockMvc.perform(patch("/api/v1/tutoring-requests/{requestId}/status", requestId)
@@ -133,5 +147,47 @@ class TutoringRequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(requestId))
                 .andExpect(jsonPath("$.data.requestStatus").value("Rechazada"));
+    }
+
+    @Test
+    void updateTutoringRequestStatus_InvalidRequestId_ThrowsException() throws Exception {
+        // Arrange
+        String invalidRequestId = "invalid-id";
+        UpdateTutoringRequestStatusDto updateStatusDto = new UpdateTutoringRequestStatusDto();
+        updateStatusDto.setStatus(RequestStatus.Aprobada);
+
+        when(updateTutoringRequestStatusUseCase.updateStatus(eq(invalidRequestId), eq(RequestStatus.Aprobada)))
+                .thenThrow(new IllegalArgumentException("Solicitud de tutoría no encontrada"));
+
+        // Act & Assert
+        mockMvc.perform(patch("/api/v1/tutoring-requests/{requestId}/status", invalidRequestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateStatusDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateTutoringRequestStatus_InvalidStatus_ThrowsException() throws Exception {
+        // Arrange
+        UpdateTutoringRequestStatusDto updateStatusDto = new UpdateTutoringRequestStatusDto();
+        updateStatusDto.setStatus(RequestStatus.Enviada); // Invalid transition
+
+        when(updateTutoringRequestStatusUseCase.updateStatus(eq(requestId), eq(RequestStatus.Enviada)))
+                .thenThrow(new IllegalStateException("Transición de estado inválida"));
+
+        // Act & Assert
+        mockMvc.perform(patch("/api/v1/tutoring-requests/{requestId}/status", requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateStatusDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateTutoringRequestStatus_EmptyRequestBody_BadRequest() throws Exception {
+        // Act & Assert
+        mockMvc.perform(patch("/api/v1/tutoring-requests/{requestId}/status", requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest());
     }
 }

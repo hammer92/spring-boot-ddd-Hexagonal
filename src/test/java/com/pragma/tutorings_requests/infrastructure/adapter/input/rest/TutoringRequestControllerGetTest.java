@@ -2,6 +2,7 @@ package com.pragma.tutorings_requests.infrastructure.adapter.input.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pragma.shared.context.TestUserContextHelper;
+import com.pragma.shared.service.MessageService;
 import com.pragma.tutorings_requests.domain.model.TutoringRequest;
 import com.pragma.tutorings_requests.domain.model.enums.RequestStatus;
 import com.pragma.tutorings_requests.domain.port.input.GetTutoringRequestsUseCase;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,6 +40,9 @@ class TutoringRequestControllerGetTest {
 
     @Mock
     private TutoringRequestDtoMapper tutoringRequestDtoMapper;
+
+    @Mock
+    private MessageService messageService;
 
     @InjectMocks
     private TutoringRequestController tutoringRequestController;
@@ -78,6 +83,10 @@ class TutoringRequestControllerGetTest {
         
         // Set up user context for authentication
         TestUserContextHelper.setTestUserContext();
+        
+        // Mock MessageService
+        when(messageService.getMessage("tutoringRequest.retrieved.success"))
+                .thenReturn("Tutoring requests retrieved successfully");
     }
     
     @AfterEach
@@ -92,6 +101,7 @@ class TutoringRequestControllerGetTest {
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1, tutoringRequest2);
         List<TutoringRequestDto> requestDtos = Arrays.asList(tutoringRequestDto1, tutoringRequestDto2);
         
+        // Since the test user is an admin, it should call getAllTutoringRequests
         when(getTutoringRequestsUseCase.getAllTutoringRequests()).thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest2)).thenReturn(tutoringRequestDto2);

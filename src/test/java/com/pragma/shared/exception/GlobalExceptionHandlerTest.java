@@ -240,7 +240,7 @@ public class GlobalExceptionHandlerTest {
     @Test
     public void test_handleMissingAuthorizationException_withDefaultMessage() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
-        MissingAuthorizationException ex = new MissingAuthorizationException();
+        MissingAuthorizationException ex = new MissingAuthorizationException("Authorization header is required");
         WebRequest webRequest = mock(WebRequest.class);
         when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
@@ -280,7 +280,7 @@ public class GlobalExceptionHandlerTest {
     @Test
     public void test_handleInvalidAuthorizationException_withDefaultMessage() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
-        InvalidAuthorizationException ex = new InvalidAuthorizationException();
+        InvalidAuthorizationException ex = new InvalidAuthorizationException("Invalid authorization header format");
         WebRequest webRequest = mock(WebRequest.class);
         when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
@@ -320,7 +320,7 @@ public class GlobalExceptionHandlerTest {
     @Test
     public void test_handleUserNotFoundException_withDefaultMessage() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
-        UserNotFoundException ex = new UserNotFoundException();
+        UserNotFoundException ex = new UserNotFoundException("User not registered in the system");
         WebRequest webRequest = mock(WebRequest.class);
         when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
@@ -340,7 +340,7 @@ public class GlobalExceptionHandlerTest {
     public void test_handleUserNotFoundException_withGoogleId() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(null);
         String googleUserId = "google123";
-        UserNotFoundException ex = new UserNotFoundException(googleUserId, true);
+        UserNotFoundException ex = new UserNotFoundException("User with Google ID 'google123' not registered in the system");
         WebRequest webRequest = mock(WebRequest.class);
         when(webRequest.getDescription(false)).thenReturn("uri=/test");
 
@@ -390,17 +390,17 @@ public class GlobalExceptionHandlerTest {
         when(webRequest.getDescription(false)).thenReturn("uri=/test");
         
         // Test that MissingAuthorizationException is handled by its specific handler
-        MissingAuthorizationException missingEx = new MissingAuthorizationException();
+        MissingAuthorizationException missingEx = new MissingAuthorizationException("Authorization header is required");
         ResponseEntity<ErrorResponseDto> missingResponse = handler.handleMissingAuthorizationException(missingEx, webRequest);
         assertEquals(HttpStatus.UNAUTHORIZED, missingResponse.getStatusCode());
         
         // Test that InvalidAuthorizationException is handled by its specific handler
-        InvalidAuthorizationException invalidEx = new InvalidAuthorizationException();
+        InvalidAuthorizationException invalidEx = new InvalidAuthorizationException("Invalid authorization header format");
         ResponseEntity<ErrorResponseDto> invalidResponse = handler.handleInvalidAuthorizationException(invalidEx, webRequest);
         assertEquals(HttpStatus.UNAUTHORIZED, invalidResponse.getStatusCode());
         
         // Test that UserNotFoundException is handled by its specific handler
-        UserNotFoundException userNotFoundEx = new UserNotFoundException();
+        UserNotFoundException userNotFoundEx = new UserNotFoundException("User not registered in the system");
         ResponseEntity<ErrorResponseDto> userNotFoundResponse = handler.handleUserNotFoundException(userNotFoundEx, webRequest);
         assertEquals(HttpStatus.FORBIDDEN, userNotFoundResponse.getStatusCode());
     }

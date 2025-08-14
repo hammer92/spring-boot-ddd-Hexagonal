@@ -174,4 +174,14 @@ public final class UserContextHelper {
         return currentUser.getRol() == RolUsuario.Tutorado || 
                currentUser.getRol() == RolUsuario.Administrador;
     }
+
+    /**
+     * Sets the MessageService for testing purposes.
+     * This method should only be used in test environments.
+     * 
+     * @param testMessageService the MessageService to use for tests
+     */
+    public static void setMessageServiceForTesting(MessageService testMessageService) {
+        UserContextHelper.messageService = testMessageService;
+    }
 }

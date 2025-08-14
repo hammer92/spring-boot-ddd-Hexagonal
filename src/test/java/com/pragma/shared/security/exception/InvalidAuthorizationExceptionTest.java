@@ -9,7 +9,7 @@ class InvalidAuthorizationExceptionTest {
     @Test
     void shouldCreateExceptionWithDefaultMessage() {
         // When
-        InvalidAuthorizationException exception = new InvalidAuthorizationException();
+        InvalidAuthorizationException exception = new InvalidAuthorizationException("Invalid authorization header format");
 
         // Then
         assertEquals("Invalid authorization header format", exception.getMessage());
@@ -46,7 +46,7 @@ class InvalidAuthorizationExceptionTest {
     @Test
     void shouldBeInstanceOfAuthenticationException() {
         // Given
-        InvalidAuthorizationException exception = new InvalidAuthorizationException();
+        InvalidAuthorizationException exception = new InvalidAuthorizationException("Invalid authorization header format");
 
         // Then
         assertInstanceOf(AuthenticationException.class, exception);

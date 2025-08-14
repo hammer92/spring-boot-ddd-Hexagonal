@@ -9,7 +9,7 @@ class MissingAuthorizationExceptionTest {
     @Test
     void shouldCreateExceptionWithDefaultMessage() {
         // When
-        MissingAuthorizationException exception = new MissingAuthorizationException();
+        MissingAuthorizationException exception = new MissingAuthorizationException("Authorization header is required");
 
         // Then
         assertEquals("Authorization header is required", exception.getMessage());
@@ -46,7 +46,7 @@ class MissingAuthorizationExceptionTest {
     @Test
     void shouldBeInstanceOfAuthenticationException() {
         // Given
-        MissingAuthorizationException exception = new MissingAuthorizationException();
+        MissingAuthorizationException exception = new MissingAuthorizationException("Authorization header is required");
 
         // Then
         assertInstanceOf(AuthenticationException.class, exception);

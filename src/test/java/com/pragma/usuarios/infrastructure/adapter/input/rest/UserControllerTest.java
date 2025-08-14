@@ -1,6 +1,9 @@
 package com.pragma.usuarios.infrastructure.adapter.input.rest;
 
 import com.pragma.chapter.domain.model.Chapter;
+import com.pragma.shared.context.UserContext;
+import com.pragma.shared.context.UserContextHelper;
+import com.pragma.shared.service.MessageService;
 import com.pragma.usuarios.domain.model.User;
 import com.pragma.usuarios.domain.model.enums.RolUsuario;
 import com.pragma.usuarios.domain.port.input.CreateUserUseCase;
@@ -14,6 +17,7 @@ import com.pragma.usuarios.infrastructure.adapter.input.rest.dto.UpdateUserReque
 import com.pragma.usuarios.infrastructure.adapter.input.rest.dto.UpdateUserRoleDto;
 import com.pragma.usuarios.infrastructure.adapter.input.rest.dto.UserDto;
 import com.pragma.usuarios.infrastructure.adapter.input.rest.mapper.UserDtoMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -51,6 +55,9 @@ class UserControllerTest {
     @Mock
     private UserDtoMapper userDtoMapper;
 
+    @Mock
+    private MessageService messageService;
+
     @InjectMocks
     private UserController userController;
 
@@ -60,12 +67,30 @@ class UserControllerTest {
     private UserDto updatedRoleUserDto;
     private User updatedLimitUser;
     private UserDto updatedLimitUserDto;
+    private User adminUser;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        
+        // Setup MessageService mock
+        UserContextHelper.setMessageServiceForTesting(messageService);
+        when(messageService.getMessage(anyString())).thenReturn("Test message");
 
         Chapter chapter = new Chapter("1", "Java");
+        
+        // Create admin user for context
+        adminUser = new User();
+        adminUser.setId("admin-1");
+        adminUser.setFirstName("Admin");
+        adminUser.setLastName("User");
+        adminUser.setEmail("admin@pragma.com");
+        adminUser.setChapter(chapter);
+        adminUser.setRol(RolUsuario.Administrador);
+        adminUser.setActiveTutoringLimit(0);
+        
+        // Set admin user in context for tests that require admin privileges
+        UserContext.setCurrentUser(adminUser);
         testUser = new User();
         testUser.setId("1");
         testUser.setFirstName("John");
@@ -116,6 +141,11 @@ class UserControllerTest {
         updatedLimitUserDto.setEmail("john.doe@pragma.com");
         updatedLimitUserDto.setRol(RolUsuario.Tutorado);
         updatedLimitUserDto.setActiveTutoringLimit(5);
+    }
+
+    @AfterEach
+    void tearDown() {
+        UserContext.clear();
     }
 
     @Test

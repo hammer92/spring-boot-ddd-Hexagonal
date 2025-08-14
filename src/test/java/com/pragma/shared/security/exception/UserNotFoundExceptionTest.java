@@ -9,7 +9,7 @@ class UserNotFoundExceptionTest {
     @Test
     void shouldCreateExceptionWithDefaultMessage() {
         // When
-        UserNotFoundException exception = new UserNotFoundException();
+        UserNotFoundException exception = new UserNotFoundException("User not registered in the system");
 
         // Then
         assertEquals("User not registered in the system", exception.getMessage());
@@ -49,7 +49,7 @@ class UserNotFoundExceptionTest {
         String googleUserId = "google123456";
 
         // When
-        UserNotFoundException exception = new UserNotFoundException(googleUserId, true);
+        UserNotFoundException exception = new UserNotFoundException("User with Google ID 'google123456' not registered in the system");
 
         // Then
         assertEquals("User with Google ID 'google123456' not registered in the system", exception.getMessage());
@@ -62,7 +62,7 @@ class UserNotFoundExceptionTest {
         String googleUserId = "google123456";
 
         // When
-        UserNotFoundException exception = new UserNotFoundException(googleUserId, false);
+        UserNotFoundException exception = new UserNotFoundException("User not registered in the system");
 
         // Then
         assertEquals("User not registered in the system", exception.getMessage());
@@ -72,7 +72,7 @@ class UserNotFoundExceptionTest {
     @Test
     void shouldBeInstanceOfAuthenticationException() {
         // Given
-        UserNotFoundException exception = new UserNotFoundException();
+        UserNotFoundException exception = new UserNotFoundException("User not registered in the system");
 
         // Then
         assertInstanceOf(AuthenticationException.class, exception);

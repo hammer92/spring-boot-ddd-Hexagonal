@@ -120,7 +120,14 @@ public class TutoringRequestController {
                 filterDto.setTuteeId(currentUser.getId());
             }
             
-            if (filterDto == null) {
+            // Check if filterDto is null or empty (all fields are null)
+            boolean isEmptyFilter = filterDto == null || 
+                    (filterDto.getTuteeId() == null && 
+                     filterDto.getSkillId() == null && 
+                     filterDto.getStatus() == null && 
+                     filterDto.getChapterId() == null);
+            
+            if (isEmptyFilter) {
                 requests = getTutoringRequestsUseCase.getAllTutoringRequests();
             } else {
                 requests = getTutoringRequestsUseCase.getTutoringRequestsWithFilters(
