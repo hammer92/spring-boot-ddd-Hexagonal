@@ -1,13 +1,17 @@
 package com.pragma.shared.context;
 
 import com.pragma.chapter.domain.model.Chapter;
+import com.pragma.shared.service.MessageService;
 import com.pragma.usuarios.domain.model.User;
 import com.pragma.usuarios.domain.model.enums.RolUsuario;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for UserContextHelper utility class.
@@ -23,6 +27,11 @@ class UserContextHelperTest {
     @BeforeEach
     void setUp() {
         UserContext.clear();
+        
+        // Mock MessageService for testing
+        MessageService mockMessageService = mock(MessageService.class);
+        when(mockMessageService.getMessage(anyString())).thenReturn("Test message");
+        UserContextHelper.setMessageServiceForTesting(mockMessageService);
         
         testChapter = new Chapter();
         testChapter.setId("chapter-1");
@@ -62,6 +71,7 @@ class UserContextHelperTest {
     @AfterEach
     void tearDown() {
         UserContext.clear();
+        UserContextHelper.setMessageServiceForTesting(null);
     }
 
     @Test

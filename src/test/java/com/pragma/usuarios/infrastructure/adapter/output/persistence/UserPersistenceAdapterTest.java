@@ -43,6 +43,7 @@ class UserPersistenceAdapterTest {
         testUser.setLastName("Doe");
         testUser.setEmail("john.doe@pragma.com");
         testUser.setGoogleUserId("google123");
+        testUser.setSlackId(null);
         testUser.setChapter(chapter);
         testUser.setRol(RolUsuario.Tutorado);
         testUser.setActiveTutoringLimit(0);
@@ -53,6 +54,7 @@ class UserPersistenceAdapterTest {
         testUserEntity.setLastName("Doe");
         testUserEntity.setEmail("john.doe@pragma.com");
         testUserEntity.setGoogleUserId("google123");
+        testUserEntity.setSlackId(null);
     }
 
     @Test

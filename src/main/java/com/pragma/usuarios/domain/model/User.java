@@ -15,6 +15,7 @@ public class User {
     private String lastName;
     private String email;
     private String googleUserId;
+    private String slackId;
     private Chapter chapter;
     private RolUsuario rol;
     private int activeTutoringLimit;

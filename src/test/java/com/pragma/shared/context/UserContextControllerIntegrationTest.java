@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration tests for UserContext usage in controllers.
  * Tests the proper handling of user context in controller methods.
  */
-@SpringBootTest
 @ActiveProfiles("test")
 class UserContextControllerIntegrationTest {
 

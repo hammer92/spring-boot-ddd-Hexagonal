@@ -38,6 +38,7 @@ class UserServiceTest {
         testUser.setFirstName("John");
         testUser.setLastName("Doe");
         testUser.setEmail("john.doe@pragma.com");
+        testUser.setSlackId(null);
         testUser.setChapter(chapter);
         testUser.setRol(RolUsuario.Tutorado);
         testUser.setActiveTutoringLimit(0);
@@ -47,6 +48,7 @@ class UserServiceTest {
         tutorUser.setFirstName("Jane");
         tutorUser.setLastName("Smith");
         tutorUser.setEmail("jane.smith@pragma.com");
+        tutorUser.setSlackId(null);
         tutorUser.setChapter(chapter);
         tutorUser.setRol(RolUsuario.Tutor);
         tutorUser.setActiveTutoringLimit(5);
@@ -120,6 +122,7 @@ class UserServiceTest {
         updatedUser.setFirstName("John");
         updatedUser.setLastName("Doe");
         updatedUser.setEmail("john.doe@pragma.com");
+        updatedUser.setSlackId(null);
         updatedUser.setChapter(testUser.getChapter());
         updatedUser.setRol(RolUsuario.Tutor);
         updatedUser.setActiveTutoringLimit(0);
@@ -163,6 +166,7 @@ class UserServiceTest {
         updatedTutor.setFirstName("Jane");
         updatedTutor.setLastName("Smith");
         updatedTutor.setEmail("jane.smith@pragma.com");
+        updatedTutor.setSlackId(null);
         updatedTutor.setChapter(tutorUser.getChapter());
         updatedTutor.setRol(RolUsuario.Tutor);
         updatedTutor.setActiveTutoringLimit(10);
@@ -228,5 +232,36 @@ class UserServiceTest {
         // Verify repository was called but save was not
         verify(userRepository).findById("nonexistent");
         verify(userRepository, never()).save(any());
+    }
+    
+    @Test
+    void updateUser_WhenSlackIdProvided_ShouldUpdateSlackId() {
+        // Arrange
+        User updatedUserData = new User();
+        updatedUserData.setSlackId("slack-123");
+        
+        User savedUser = new User();
+        savedUser.setId("1");
+        savedUser.setFirstName("John");
+        savedUser.setLastName("Doe");
+        savedUser.setEmail("john.doe@pragma.com");
+        savedUser.setSlackId("slack-123");
+        savedUser.setChapter(testUser.getChapter());
+        savedUser.setRol(RolUsuario.Tutorado);
+        savedUser.setActiveTutoringLimit(0);
+        
+        when(userRepository.findById("1")).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        // Act
+        Optional<User> result = userService.updateUser("1", updatedUserData);
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals("slack-123", result.get().getSlackId());
+        
+        // Verify repository was called with correct parameters
+        verify(userRepository).findById("1");
+        verify(userRepository).save(argThat(user -> "slack-123".equals(user.getSlackId())));
     }
 }

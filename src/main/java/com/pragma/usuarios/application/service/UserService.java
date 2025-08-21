@@ -44,6 +44,9 @@ public class UserService implements CreateUserUseCase, UpdateUserUseCase, FindUs
                     if (updatedUser.getChapter() != null) {
                         existingUser.setChapter(updatedUser.getChapter());
                     }
+                    if (updatedUser.getSlackId() != null) {
+                        existingUser.setSlackId(updatedUser.getSlackId());
+                    }
 
                     // Mantener los campos que no deben actualizarse
                     // email, rol y activeTutoringLimit se omiten intencionalmente

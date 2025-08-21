@@ -15,14 +15,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import com.pragma.shared.service.MessageService;
+import org.mockito.Mock;
 
 /**
  * Integration tests for UserContext functionality.
  * Tests thread isolation, context management, and UserContextHelper integration.
  */
-@SpringBootTest
 @ActiveProfiles("test")
 class UserContextIntegrationTest {
+
+    private MessageService mockMessageService;
 
     private User testUser;
     private User adminUser;
@@ -30,6 +35,10 @@ class UserContextIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        // Mock MessageService for UserContextHelper
+        mockMessageService = mock(MessageService.class);
+        when(mockMessageService.getMessage(anyString())).thenReturn("Test message");
+        UserContextHelper.setMessageServiceForTesting(mockMessageService);
         testChapter = new Chapter();
         testChapter.setId("chapter-1");
         testChapter.setName("Test Chapter");
@@ -58,6 +67,7 @@ class UserContextIntegrationTest {
     @AfterEach
     void tearDown() {
         UserContext.clear();
+        UserContextHelper.setMessageServiceForTesting(null);
     }
 
     @Test

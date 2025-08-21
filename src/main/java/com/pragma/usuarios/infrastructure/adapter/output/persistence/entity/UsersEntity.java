@@ -32,6 +32,9 @@ public class UsersEntity implements Serializable {
     @Column(name = "google_user_id", unique = true, nullable = false)
     private String googleUserId; // "ID de usuario de Google para control de sesiones"
 
+    @Column(name = "slack_id")
+    private String slackId; // "ID de usuario de Slack"
+
     @ManyToOne
     private ChapterEntity chapter; // "chapter principal"
 
