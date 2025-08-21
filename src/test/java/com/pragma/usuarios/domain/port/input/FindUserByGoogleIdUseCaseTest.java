@@ -36,6 +36,7 @@ class FindUserByGoogleIdUseCaseTest {
         testUser.setLastName("Doe");
         testUser.setEmail("john.doe@example.com");
         testUser.setGoogleUserId(TEST_GOOGLE_USER_ID);
+        testUser.setSlackId(null);
         testUser.setRol(RolUsuario.Tutorado);
         testUser.setActiveTutoringLimit(0);
     }

@@ -65,7 +65,7 @@ class TutoringRequestControllerGetTest {
         
         tutoringRequest1 = new TutoringRequest();
         tutoringRequest1.setId(UUID.randomUUID().toString());
-        tutoringRequest1.setRequestStatus(RequestStatus.Enviada);
+        tutoringRequest1.setRequestStatus(RequestStatus.Pendiente);
         
         tutoringRequest2 = new TutoringRequest();
         tutoringRequest2.setId(UUID.randomUUID().toString());
@@ -73,7 +73,7 @@ class TutoringRequestControllerGetTest {
         
         tutoringRequestDto1 = new TutoringRequestDto();
         tutoringRequestDto1.setId(tutoringRequest1.getId());
-        tutoringRequestDto1.setRequestStatus(RequestStatus.Enviada);
+        tutoringRequestDto1.setRequestStatus(RequestStatus.Pendiente);
         tutoringRequestDto1.setSkills(Arrays.asList());
         
         tutoringRequestDto2 = new TutoringRequestDto();
@@ -167,17 +167,17 @@ class TutoringRequestControllerGetTest {
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1);
         List<TutoringRequestDto> requestDtos = Arrays.asList(tutoringRequestDto1);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(isNull(), isNull(), eq(RequestStatus.Enviada), isNull())).thenReturn(requests);
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(isNull(), isNull(), eq(RequestStatus.Pendiente), isNull())).thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/tutoring-requests")
-                .param("status", "Enviada"))
+                .param("status", "Pendiente"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data.length()").value(1))
                 .andExpect(jsonPath("$.data[0].id").value(tutoringRequestDto1.getId()))
-                .andExpect(jsonPath("$.data[0].requestStatus").value("Enviada"))
+                .andExpect(jsonPath("$.data[0].requestStatus").value("Pendiente"))
                 .andExpect(jsonPath("$.data[0].skills").isArray());
     }
     
@@ -187,19 +187,19 @@ class TutoringRequestControllerGetTest {
         List<TutoringRequest> requests = Arrays.asList(tutoringRequest1);
         List<TutoringRequestDto> requestDtos = Arrays.asList(tutoringRequestDto1);
         
-        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), eq(skillId), eq(RequestStatus.Enviada), isNull())).thenReturn(requests);
+        when(getTutoringRequestsUseCase.getTutoringRequestsWithFilters(eq(tuteeId), eq(skillId), eq(RequestStatus.Pendiente), isNull())).thenReturn(requests);
         when(tutoringRequestDtoMapper.toDto(tutoringRequest1)).thenReturn(tutoringRequestDto1);
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/tutoring-requests")
                 .param("tuteeId", tuteeId)
                 .param("skillId", skillId)
-                .param("status", "Enviada"))
+                .param("status", "Pendiente"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data.length()").value(1))
                 .andExpect(jsonPath("$.data[0].id").value(tutoringRequestDto1.getId()))
-                .andExpect(jsonPath("$.data[0].requestStatus").value("Enviada"))
+                .andExpect(jsonPath("$.data[0].requestStatus").value("Pendiente"))
                 .andExpect(jsonPath("$.data[0].skills").isArray());
     }
 }

@@ -43,13 +43,13 @@ class TutoringRequestPersistenceAdapterTest {
         domainModel.setId("request-id");
         domainModel.setNeedsDescription("Necesito ayuda con Spring Boot");
         domainModel.setRequestDate(new Date());
-        domainModel.setRequestStatus(RequestStatus.Enviada);
+        domainModel.setRequestStatus(RequestStatus.Pendiente);
 
         TutoringRequestsEntity entity = new TutoringRequestsEntity();
         entity.setId("request-id");
         entity.setNeedsDescription("Necesito ayuda con Spring Boot");
         entity.setRequestDate(new Date());
-        entity.setRequestStatus(RequestStatus.Enviada);
+        entity.setRequestStatus(RequestStatus.Pendiente);
 
         when(mapper.toEntity(any(TutoringRequest.class))).thenReturn(entity);
         when(repository.save(any(TutoringRequestsEntity.class))).thenReturn(entity);
@@ -61,7 +61,7 @@ class TutoringRequestPersistenceAdapterTest {
         // Assert
         assertEquals("request-id", result.getId());
         assertEquals("Necesito ayuda con Spring Boot", result.getNeedsDescription());
-        assertEquals(RequestStatus.Enviada, result.getRequestStatus());
+        assertEquals(RequestStatus.Pendiente, result.getRequestStatus());
 
         verify(mapper, times(1)).toEntity(domainModel);
         verify(repository, times(1)).save(entity);

@@ -53,7 +53,7 @@ class TutoringRequestServiceGetTest {
         tutoringRequest1.setSkills(Arrays.asList(skill));
         tutoringRequest1.setNeedsDescription("Necesito ayuda con Java");
         tutoringRequest1.setRequestDate(new Date());
-        tutoringRequest1.setRequestStatus(RequestStatus.Enviada);
+        tutoringRequest1.setRequestStatus(RequestStatus.Pendiente);
         
         tutoringRequest2 = new TutoringRequest();
         tutoringRequest2.setId(UUID.randomUUID().toString());
@@ -116,31 +116,31 @@ class TutoringRequestServiceGetTest {
     void getTutoringRequestsWithFilters_OnlyStatus_Success() {
         // Arrange
         List<TutoringRequest> expectedRequests = Arrays.asList(tutoringRequest1);
-        when(tutoringRequestRepository.findWithFilters(null, null, RequestStatus.Enviada, null)).thenReturn(expectedRequests);
+        when(tutoringRequestRepository.findWithFilters(null, null, RequestStatus.Pendiente, null)).thenReturn(expectedRequests);
 
         // Act
-        List<TutoringRequest> result = tutoringRequestService.getTutoringRequestsWithFilters(null, null, RequestStatus.Enviada, null);
+        List<TutoringRequest> result = tutoringRequestService.getTutoringRequestsWithFilters(null, null, RequestStatus.Pendiente, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(expectedRequests, result);
-        verify(tutoringRequestRepository, times(1)).findWithFilters(null, null, RequestStatus.Enviada, null);
+        verify(tutoringRequestRepository, times(1)).findWithFilters(null, null, RequestStatus.Pendiente, null);
     }
     
     @Test
     void getTutoringRequestsWithFilters_AllFilters_Success() {
         // Arrange
         List<TutoringRequest> expectedRequests = Arrays.asList(tutoringRequest1);
-        when(tutoringRequestRepository.findWithFilters(tuteeId, skillId, RequestStatus.Enviada, null)).thenReturn(expectedRequests);
+        when(tutoringRequestRepository.findWithFilters(tuteeId, skillId, RequestStatus.Pendiente, null)).thenReturn(expectedRequests);
 
         // Act
-        List<TutoringRequest> result = tutoringRequestService.getTutoringRequestsWithFilters(tuteeId, skillId, RequestStatus.Enviada, null);
+        List<TutoringRequest> result = tutoringRequestService.getTutoringRequestsWithFilters(tuteeId, skillId, RequestStatus.Pendiente, null);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(expectedRequests, result);
-        verify(tutoringRequestRepository, times(1)).findWithFilters(tuteeId, skillId, RequestStatus.Enviada, null);
+        verify(tutoringRequestRepository, times(1)).findWithFilters(tuteeId, skillId, RequestStatus.Pendiente, null);
     }
 }

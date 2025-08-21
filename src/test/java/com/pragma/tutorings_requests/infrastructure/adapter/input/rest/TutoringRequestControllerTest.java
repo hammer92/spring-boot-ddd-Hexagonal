@@ -74,12 +74,12 @@ class TutoringRequestControllerTest {
 
         tutoringRequest = new TutoringRequest();
         tutoringRequest.setId(requestId);
-        tutoringRequest.setRequestStatus(RequestStatus.Enviada);
+        tutoringRequest.setRequestStatus(RequestStatus.Pendiente);
         tutoringRequest.setRequestDate(new Date());
 
         tutoringRequestDto = new TutoringRequestDto();
         tutoringRequestDto.setId(requestId);
-        tutoringRequestDto.setRequestStatus(RequestStatus.Enviada);
+        tutoringRequestDto.setRequestStatus(RequestStatus.Pendiente);
         
         // Set up user context for authentication
         TestUserContextHelper.setTestUserContext();
@@ -121,20 +121,20 @@ class TutoringRequestControllerTest {
     }
 
     @Test
-    void updateTutoringRequestStatus_ToRejected_Success() throws Exception {
+    void updateTutoringRequestStatus_ToCanceled_Success() throws Exception {
         // Arrange
         UpdateTutoringRequestStatusDto updateStatusDto = new UpdateTutoringRequestStatusDto();
-        updateStatusDto.setStatus(RequestStatus.Rechazada);
+        updateStatusDto.setStatus(RequestStatus.Cancelada);
 
         TutoringRequest updatedRequest = new TutoringRequest();
         updatedRequest.setId(requestId);
-        updatedRequest.setRequestStatus(RequestStatus.Rechazada);
+        updatedRequest.setRequestStatus(RequestStatus.Cancelada);
 
         TutoringRequestDto updatedDto = new TutoringRequestDto();
         updatedDto.setId(requestId);
-        updatedDto.setRequestStatus(RequestStatus.Rechazada);
+        updatedDto.setRequestStatus(RequestStatus.Cancelada);
 
-        when(updateTutoringRequestStatusUseCase.updateStatus(eq(requestId), eq(RequestStatus.Rechazada)))
+        when(updateTutoringRequestStatusUseCase.updateStatus(eq(requestId), eq(RequestStatus.Cancelada)))
                 .thenReturn(updatedRequest);
         when(tutoringRequestDtoMapper.toDto(updatedRequest)).thenReturn(updatedDto);
         when(messageService.getMessage("tutoringRequest.status.updated.success"))
@@ -146,7 +146,7 @@ class TutoringRequestControllerTest {
                 .content(objectMapper.writeValueAsString(updateStatusDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(requestId))
-                .andExpect(jsonPath("$.data.requestStatus").value("Rechazada"));
+                .andExpect(jsonPath("$.data.requestStatus").value("Cancelada"));
     }
 
     @Test
@@ -170,9 +170,9 @@ class TutoringRequestControllerTest {
     void updateTutoringRequestStatus_InvalidStatus_ThrowsException() throws Exception {
         // Arrange
         UpdateTutoringRequestStatusDto updateStatusDto = new UpdateTutoringRequestStatusDto();
-        updateStatusDto.setStatus(RequestStatus.Enviada); // Invalid transition
+        updateStatusDto.setStatus(RequestStatus.Pendiente); // Invalid transition
 
-        when(updateTutoringRequestStatusUseCase.updateStatus(eq(requestId), eq(RequestStatus.Enviada)))
+        when(updateTutoringRequestStatusUseCase.updateStatus(eq(requestId), eq(RequestStatus.Pendiente)))
                 .thenThrow(new IllegalStateException("Transición de estado inválida"));
 
         // Act & Assert

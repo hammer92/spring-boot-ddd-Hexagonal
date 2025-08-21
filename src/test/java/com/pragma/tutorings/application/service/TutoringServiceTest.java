@@ -162,7 +162,7 @@ class TutoringServiceTest {
     @Test
     void createTutoring_InvalidRequestStatus() {
         // Arrange
-        tutoringRequest.setRequestStatus(RequestStatus.Enviada);
+        tutoringRequest.setRequestStatus(RequestStatus.Pendiente);
         when(findUserByIdUseCase.findUserById("tutor-id")).thenReturn(Optional.of(tutor));
         when(tutoringRequestRepository.findById("request-id")).thenReturn(Optional.of(tutoringRequest));
 
