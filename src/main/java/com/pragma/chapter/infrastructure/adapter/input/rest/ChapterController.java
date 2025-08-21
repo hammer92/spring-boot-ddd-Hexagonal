@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/chapter")
+@RequestMapping("/api/v1/chapter")
 @Slf4j
 public class ChapterController {
 
