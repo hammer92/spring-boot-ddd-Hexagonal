@@ -41,6 +41,10 @@ tags:
     description: Gestión de retroalimentación
   - name: Statistics
     description: Estadísticas del sistema
+  - name: Profile
+    description: Información de perfil y contexto de usuario
+  - name: Health
+    description: Endpoints de monitoreo y salud de la aplicación
 
 paths:
   # Users endpoints
@@ -49,8 +53,7 @@ paths:
       tags:
         - Users
       summary: Crear un nuevo usuario
-      description: Crea un nuevo usuario en el sistema
-      security: []
+      description: Crea un nuevo usuario en el sistema (solo administradores)
       requestBody:
         required: true
         content:
@@ -173,7 +176,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserDto'
+                $ref: '#/components/schemas/OkResponseUser'
         '401':
           description: No autorizado - Token de autenticación faltante o inválido
           content:
@@ -256,7 +259,7 @@ paths:
           description: Usuario no encontrado
 
   # Chapters endpoints
-  /api/chapter/:
+  /api/v1/chapter/:
     get:
       tags:
         - Chapters
@@ -318,7 +321,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthenticationErrorDto'
 
-  /api/chapter/{id}:
+  /api/v1/chapter/{id}:
     get:
       tags:
         - Chapters
@@ -376,7 +379,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SkillDto'
+                $ref: '#/components/schemas/OkResponseSkill'
         '400':
           description: Datos de entrada inválidos
           content:
@@ -406,9 +409,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SkillDto'
+                $ref: '#/components/schemas/OkResponseSkillList'
         '401':
           description: No autorizado - Token de autenticación faltante o inválido
           content:
@@ -438,7 +439,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SkillDto'
+                $ref: '#/components/schemas/OkResponseSkill'
         '401':
           description: No autorizado - Token de autenticación faltante o inválido
           content:
@@ -473,7 +474,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SkillDto'
+                $ref: '#/components/schemas/OkResponseSkill'
         '401':
           description: No autorizado - Token de autenticación faltante o inválido
           content:
@@ -501,8 +502,12 @@ paths:
             type: string
           description: ID de la habilidad
       responses:
-        '204':
+        '200':
           description: Habilidad eliminada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponseVoid'
         '401':
           description: No autorizado - Token de autenticación faltante o inválido
           content:
@@ -657,11 +662,11 @@ paths:
       description: Obtiene las solicitudes de tutoría del usuario actual
       responses:
         '200':
-          description: Mis solicitudes obtenidas exitosamente
+          description: Mis solicitudes y tutorías obtenidas exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OkResponseTutoringRequestList'
+                $ref: '#/components/schemas/OkResponseMyRequests'
         '401':
           description: No autorizado - Token de autenticación faltante o inválido
           content:
@@ -933,6 +938,139 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthenticationErrorDto'
 
+  # Profile endpoints (for testing and user context)
+  /api/v1/profile/me:
+    get:
+      tags:
+        - Profile
+      summary: Obtener perfil del usuario actual
+      description: Obtiene información del perfil del usuario autenticado
+      responses:
+        '200':
+          description: Perfil obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponseProfile'
+        '401':
+          description: Usuario no autenticado
+
+  /api/v1/profile/permissions:
+    get:
+      tags:
+        - Profile
+      summary: Obtener permisos del usuario
+      description: Obtiene los permisos y capacidades del usuario actual
+      responses:
+        '200':
+          description: Permisos obtenidos exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponsePermissions'
+        '401':
+          description: Usuario no autenticado
+
+  /api/v1/profile/context-status:
+    get:
+      tags:
+        - Profile
+      summary: Obtener estado del contexto de usuario
+      description: Obtiene información sobre el estado del contexto de autenticación
+      responses:
+        '200':
+          description: Estado del contexto obtenido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponseContextStatus'
+
+  /api/v1/profile/admin-info:
+    get:
+      tags:
+        - Profile
+      summary: Obtener información de administrador
+      description: Endpoint exclusivo para administradores
+      responses:
+        '200':
+          description: Información de administrador obtenida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponseAdminInfo'
+        '401':
+          description: Usuario no autenticado
+        '403':
+          description: Acceso denegado - se requieren privilegios de administrador
+
+  /api/v1/profile/user/{userId}/access-check:
+    get:
+      tags:
+        - Profile
+      summary: Verificar acceso a recurso de usuario
+      description: Verifica si el usuario actual puede acceder a un recurso específico
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del usuario a verificar
+      responses:
+        '200':
+          description: Verificación de acceso completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponseAccessCheck'
+        '401':
+          description: Usuario no autenticado
+
+  /api/v1/profile/public-info:
+    get:
+      tags:
+        - Profile
+      summary: Obtener información pública
+      description: Endpoint público que funciona con o sin autenticación
+      security: []
+      responses:
+        '200':
+          description: Información pública obtenida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponsePublicInfo'
+
+  # Health Check endpoints
+  /actuator/health:
+    get:
+      tags:
+        - Health
+      summary: Health Check
+      description: Endpoint de verificación de salud de la aplicación
+      security: []
+      responses:
+        '200':
+          description: Aplicación funcionando correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+        '503':
+          description: Aplicación no disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: DOWN
+
   # Statistics endpoints
   /api/v1/statistics/dashboard:
     get:
@@ -1000,6 +1138,9 @@ components:
           type: string
           format: email
           description: Correo electrónico del usuario
+        slackId:
+          type: string
+          description: ID de Slack del usuario
         chapter:
           $ref: '#/components/schemas/ChapterDto'
         rol:
@@ -1007,6 +1148,9 @@ components:
         activeTutoringLimit:
           type: integer
           description: Límite de tutorías activas
+        seniority:
+          type: integer
+          description: Nivel de seniority del usuario
 
     CreateUserDto:
       type: object
@@ -1033,6 +1177,9 @@ components:
         chapterId:
           type: string
           description: ID del capítulo al que pertenece
+        seniority:
+          type: integer
+          description: Nivel de seniority del usuario
 
     UpdateUserRequestDto:
       type: object
@@ -1358,34 +1505,34 @@ components:
     RolUsuario:
       type: string
       enum:
-        - Tutor
-        - Tutorado
-        - Administrador
+        - TUTOR
+        - TUTORADO
+        - ADMINISTRADOR
       description: Rol del usuario en el sistema
 
     RequestStatus:
       type: string
       enum:
-        - Enviada
-        - Aprobada
-        - Asignada
-        - Rechazada
+        - ENVIADA
+        - APROBADA
+        - ASIGNADA
+        - RECHAZADA
       description: Estado de la solicitud de tutoría
 
     TutoringStatus:
       type: string
       enum:
-        - Activa
-        - Completada
-        - Cancelada
+        - ACTIVA
+        - COMPLETADA
+        - CANCELADA
       description: Estado de la tutoría
 
     TutoringsSessionStatus:
       type: string
       enum:
-        - Programada
-        - Realizada
-        - Cancelada
+        - PROGRAMADA
+        - REALIZADA
+        - CANCELADA
       description: Estado de la sesión de tutoría
 
     # Response wrappers
@@ -1524,10 +1671,10 @@ components:
             format: int64
           description: Número de solicitudes por estado
           example:
-            Enviada: 5
-            Aprobada: 3
-            Asignada: 10
-            Rechazada: 2
+            ENVIADA: 5
+            APROBADA: 3
+            ASIGNADA: 10
+            RECHAZADA: 2
         tutoringsByStatus:
           type: object
           additionalProperties:
@@ -1535,9 +1682,9 @@ components:
             format: int64
           description: Número de tutorías por estado
           example:
-            Activa: 8
-            Completada: 15
-            Cancelada: 2
+            ACTIVA: 8
+            COMPLETADA: 15
+            CANCELADA: 2
         activeTutorsByChapter:
           type: object
           additionalProperties:
@@ -1548,3 +1695,238 @@ components:
             "Chapter 1": 5
             "Chapter 2": 3
             "Chapter 3": 7
+
+    OkResponseUser:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          $ref: '#/components/schemas/UserDto'
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp de la respuesta
+
+    OkResponseSkill:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          $ref: '#/components/schemas/SkillDto'
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp de la respuesta
+
+    OkResponseSkillList:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillDto'
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp de la respuesta
+
+    OkResponseVoid:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          type: object
+          nullable: true
+          description: Datos de respuesta (null para operaciones void)
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp de la respuesta
+
+    MyRequestsResponseDto:
+      type: object
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/TutoringRequestDto'
+          description: Solicitudes de tutoría del usuario
+        tutoringsAsTutor:
+          type: array
+          items:
+            $ref: '#/components/schemas/TutoringDto'
+          description: Tutorías donde el usuario es tutor
+        tutoringsAsTutee:
+          type: array
+          items:
+            $ref: '#/components/schemas/TutoringDto'
+          description: Tutorías donde el usuario es tutorado
+
+    OkResponseMyRequests:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          $ref: '#/components/schemas/MyRequestsResponseDto'
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp de la respuesta
+
+    OkResponseProfile:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            email:
+              type: string
+            role:
+              type: string
+            chapterId:
+              type: string
+            activeTutoringLimit:
+              type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    OkResponsePermissions:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          type: object
+          properties:
+            isAdmin:
+              type: boolean
+            canActAsTutor:
+              type: boolean
+            canRequestTutoring:
+              type: boolean
+            hasStudentRole:
+              type: boolean
+            hasTutorRole:
+              type: boolean
+            hasAdminRole:
+              type: boolean
+        timestamp:
+          type: string
+          format: date-time
+
+    OkResponseContextStatus:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          type: object
+          properties:
+            hasAuthenticatedUser:
+              type: boolean
+            contextAvailable:
+              type: boolean
+            userId:
+              type: string
+            userEmail:
+              type: string
+            userRole:
+              type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    OkResponseAdminInfo:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          type: object
+          properties:
+            adminUserId:
+              type: string
+            adminEmail:
+              type: string
+            logInfo:
+              type: string
+            accessTime:
+              type: integer
+              format: int64
+        timestamp:
+          type: string
+          format: date-time
+
+    OkResponseAccessCheck:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          type: object
+          properties:
+            requestedUserId:
+              type: string
+            currentUserId:
+              type: string
+            canAccess:
+              type: boolean
+            isOwnResource:
+              type: boolean
+            isAdmin:
+              type: boolean
+            accessValidation:
+              type: string
+              enum: [GRANTED, DENIED]
+        timestamp:
+          type: string
+          format: date-time
+
+    OkResponsePublicInfo:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje de respuesta
+        data:
+          type: object
+          properties:
+            endpoint:
+              type: string
+            timestamp:
+              type: integer
+              format: int64
+            authenticatedUser:
+              type: string
+              nullable: true
+            userRole:
+              type: string
+              nullable: true
+        timestamp:
+          type: string
+          format: date-time
