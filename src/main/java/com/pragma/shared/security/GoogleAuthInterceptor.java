@@ -42,6 +42,11 @@ public class GoogleAuthInterceptor implements HandlerInterceptor {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // Skip authentication for OPTIONS requests (CORS preflight)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+
         String clientIp = getClientIpAddress(request);
         String userAgent = request.getHeader("User-Agent");
         String requestUri = request.getRequestURI();
