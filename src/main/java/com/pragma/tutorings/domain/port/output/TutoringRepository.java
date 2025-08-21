@@ -9,5 +9,6 @@ public interface TutoringRepository {
     Tutoring save(Tutoring tutoring);
     Optional<Tutoring> findById(String id);
     List<Tutoring> findByTutorId(String tutorId);
+    List<Tutoring> findByTuteeId(String tuteeId);
     Long countActiveTutoringByTutorId(String tutorId);
 }

@@ -37,8 +37,12 @@ public class TutoringController {
         log.info("User {} creating tutoring for request: {} with tutor: {}", 
                 currentUser.getEmail(), createTutoringDto.getTutoringRequestId(), createTutoringDto.getTutorId());
         
-        // Only admins can create tutorings
-        UserContextHelper.requireAdminRole();
+        // Only tutors and admins can create tutorings
+        if (!UserContextHelper.canActAsTutor()) {
+            log.warn("User {} attempted to create tutoring without tutor privileges", currentUser.getEmail());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(OkResponseDto.of("No tiene permisos para crear tutorías", null));
+        }
         
         Tutoring tutoring = createTutoringUseCase.createTutoring(
                 createTutoringDto.getTutoringRequestId(),

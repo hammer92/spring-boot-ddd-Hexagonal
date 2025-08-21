@@ -13,6 +13,7 @@ import java.util.List;
 @Repository
 public interface SpringDataTutoringRepository extends JpaRepository<TutoringEntity, String> {
     List<TutoringEntity> findByTutorId(UsersEntity tutorId);
+    List<TutoringEntity> findByTuteeId(UsersEntity tuteeId);
 
     @Query("SELECT COUNT(t) FROM TutoringEntity t WHERE t.tutorId.id = :tutorId AND t.status = :status")
     Long countByTutorIdAndStatus(@Param("tutorId") String tutorId, @Param("status") TutoringStatus status);

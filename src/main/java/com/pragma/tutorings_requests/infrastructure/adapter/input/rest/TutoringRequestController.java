@@ -9,12 +9,16 @@ import com.pragma.tutorings_requests.domain.port.input.CreateTutoringRequestUseC
 import com.pragma.tutorings_requests.domain.port.input.GetTutoringRequestsUseCase;
 import com.pragma.tutorings_requests.domain.port.input.UpdateTutoringRequestStatusUseCase;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.CreateTutoringRequestDto;
+import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.MyRequestsResponseDto;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.TutoringRequestDto;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.TutoringRequestFilterDto;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.dto.UpdateTutoringRequestStatusDto;
+import com.pragma.tutorings_requests.domain.model.enums.RequestStatus;
+import com.pragma.tutorings.domain.model.Tutoring;
+import com.pragma.tutorings.domain.port.input.GetTutoringsUseCase;
+import com.pragma.tutorings.infrastructure.adapter.input.rest.mapper.TutoringDtoMapper;
 import com.pragma.tutorings_requests.infrastructure.adapter.input.rest.mapper.TutoringRequestDtoMapper;
 import com.pragma.usuarios.domain.model.User;
-import com.pragma.usuarios.domain.model.enums.RolUsuario;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +38,9 @@ public class TutoringRequestController {
     private final CreateTutoringRequestUseCase createTutoringRequestUseCase;
     private final UpdateTutoringRequestStatusUseCase updateTutoringRequestStatusUseCase;
     private final GetTutoringRequestsUseCase getTutoringRequestsUseCase;
+    private final GetTutoringsUseCase getTutoringsUseCase;
     private final TutoringRequestDtoMapper tutoringRequestDtoMapper;
+    private final TutoringDtoMapper tutoringDtoMapper;
     private final MessageService messageService;
 
     @PostMapping
@@ -140,6 +146,7 @@ public class TutoringRequestController {
             }
             
             List<TutoringRequestDto> responseDtos = requests.stream()
+                    .filter(request -> request.getRequestStatus() != RequestStatus.Asignada)
                     .map(tutoringRequestDtoMapper::toDto)
                     .collect(Collectors.toList());
             
@@ -155,25 +162,46 @@ public class TutoringRequestController {
     }
     
     @GetMapping("/my-requests")
-    public ResponseEntity<OkResponseDto<List<TutoringRequestDto>>> getMyTutoringRequests() {
+    public ResponseEntity<OkResponseDto<MyRequestsResponseDto>> getMyTutoringRequests() {
         try {
             User currentUser = UserContextHelper.getCurrentUserOrThrow();
-            log.info("User {} retrieving own tutoring requests", currentUser.getEmail());
+            log.info("User {} retrieving own tutoring requests and tutorings", currentUser.getEmail());
             
+            // Get tutoring requests
             List<TutoringRequest> requests = getTutoringRequestsUseCase.getTutoringRequestsWithFilters(
                     currentUser.getId(), null, null, null);
-            
-            List<TutoringRequestDto> responseDtos = requests.stream()
+            List<TutoringRequestDto> requestDtos = requests.stream()
+                    .filter(request -> request.getRequestStatus() != RequestStatus.Asignada)
                     .map(tutoringRequestDtoMapper::toDto)
                     .collect(Collectors.toList());
             
-            log.info("User {} has {} tutoring requests", currentUser.getEmail(), responseDtos.size());
+            MyRequestsResponseDto response = new MyRequestsResponseDto();
+            response.setRequests(requestDtos);
+            
+            // If user is tutor, get tutorings where they are tutor and tutee
+            if (UserContextHelper.canActAsTutor()) {
+                List<Tutoring> tutoringsAsTutor = getTutoringsUseCase.getTutoringsByTutorId(currentUser.getId());
+                List<Tutoring> tutoringsAsTutee = getTutoringsUseCase.getTutoringsByTuteeId(currentUser.getId());
+                
+                response.setTutoringsAsTutor(tutoringDtoMapper.toDtoList(tutoringsAsTutor));
+                response.setTutoringsAsTutee(tutoringDtoMapper.toDtoList(tutoringsAsTutee));
+                
+                log.info("User {} has {} requests, {} tutorings as tutor, {} tutorings as tutee", 
+                        currentUser.getEmail(), requestDtos.size(), tutoringsAsTutor.size(), tutoringsAsTutee.size());
+            } else {
+                // Non-tutors only get tutorings where they are tutee
+                List<Tutoring> tutoringsAsTutee = getTutoringsUseCase.getTutoringsByTuteeId(currentUser.getId());
+                response.setTutoringsAsTutee(tutoringDtoMapper.toDtoList(tutoringsAsTutee));
+                
+                log.info("User {} has {} requests, {} tutorings as tutee", 
+                        currentUser.getEmail(), requestDtos.size(), tutoringsAsTutee.size());
+            }
             
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(OkResponseDto.of("Mis solicitudes de tutoría obtenidas exitosamente", responseDtos));
+                    .body(OkResponseDto.of("Mis solicitudes y tutorías obtenidas exitosamente", response));
         } catch (Exception e) {
-            log.error("Error retrieving user's own tutoring requests", e);
+            log.error("Error retrieving user's own tutoring requests and tutorings", e);
             throw e;
         }
     }

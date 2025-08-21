@@ -47,6 +47,17 @@ public class TutoringPersistenceAdapter implements TutoringRepository {
     }
 
     @Override
+    public List<Tutoring> findByTuteeId(String tuteeId) {
+        Optional<UsersEntity> tuteeEntity = userRepository.findById(tuteeId);
+        if (tuteeEntity.isEmpty()) {
+            return List.of();
+        }
+
+        List<TutoringEntity> entities = tutoringRepository.findByTuteeId(tuteeEntity.get());
+        return tutoringMapper.toDomainList(entities);
+    }
+
+    @Override
     public Long countActiveTutoringByTutorId(String tutorId) {
         return tutoringRepository.countByTutorIdAndStatus(tutorId, TutoringStatus.Activa);
     }
