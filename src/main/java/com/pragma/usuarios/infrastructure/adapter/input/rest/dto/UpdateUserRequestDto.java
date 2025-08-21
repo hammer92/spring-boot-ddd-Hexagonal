@@ -16,4 +16,5 @@ public class UpdateUserRequestDto {
     private String lastName;
     private String chapterId;
     private String slackId;
+    private int seniority;
 }

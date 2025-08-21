@@ -44,4 +44,7 @@ public class UsersEntity implements Serializable {
 
     @Column(name = "active_tutoring_limit")
     private int activeTutoringLimit; // Número máximo de tutorías activas para un tutor"
+
+    @Column(name = "seniority")
+    private int seniority; // Nivel de seniority del usuario
 }

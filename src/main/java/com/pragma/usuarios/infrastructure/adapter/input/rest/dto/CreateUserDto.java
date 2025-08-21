@@ -25,4 +25,6 @@ public class CreateUserDto {
     
     @NotBlank(message = "Chapter ID is required")
     private String chapterId;
+    
+    private int seniority;
 }

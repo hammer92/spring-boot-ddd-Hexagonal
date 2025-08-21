@@ -21,4 +21,5 @@ public class UserDto {
     private ChapterDto chapter;
     private RolUsuario rol;
     private int activeTutoringLimit;
+    private int seniority;
 }

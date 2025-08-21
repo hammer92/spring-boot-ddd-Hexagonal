@@ -29,6 +29,7 @@ public abstract class UserDtoMapper {
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "rol", ignore = true)
     @Mapping(target = "activeTutoringLimit", ignore = true)
+    @Mapping(target = "googleUserId", ignore = true)
     @Mapping(target = "chapter", ignore = true)
     public abstract User toModel(UpdateUserRequestDto dto);
     

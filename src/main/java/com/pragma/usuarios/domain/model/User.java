@@ -19,4 +19,5 @@ public class User {
     private Chapter chapter;
     private RolUsuario rol;
     private int activeTutoringLimit;
+    private int seniority;
 }
