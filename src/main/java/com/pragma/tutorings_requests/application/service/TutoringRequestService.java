@@ -1,11 +1,13 @@
 package com.pragma.tutorings_requests.application.service;
 
+import com.pragma.shared.context.UserContextHelper;
 import com.pragma.tutorings_requests.domain.model.TutoringRequest;
 import com.pragma.tutorings_requests.domain.model.enums.RequestStatus;
 import com.pragma.tutorings_requests.domain.port.input.CreateTutoringRequestUseCase;
 import com.pragma.tutorings_requests.domain.port.input.GetTutoringRequestsUseCase;
 import com.pragma.tutorings_requests.domain.port.input.UpdateTutoringRequestStatusUseCase;
 import com.pragma.tutorings_requests.domain.port.output.TutoringRequestRepository;
+import com.pragma.usuarios.domain.model.enums.RolUsuario;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,8 +33,8 @@ public class TutoringRequestService implements
             // Establecer la fecha actual
             tutoringRequest.setRequestDate(new Date());
             
-            // Establecer el estado por defecto como Enviada
-            tutoringRequest.setRequestStatus(RequestStatus.Enviada);
+            // Establecer el estado por defecto como Pendiente
+            tutoringRequest.setRequestStatus(RequestStatus.Pendiente);
             
             TutoringRequest savedRequest = tutoringRequestRepository.save(tutoringRequest);
             log.info("Solicitud de tutoría guardada exitosamente con ID: {}", savedRequest.getId());
@@ -49,19 +51,15 @@ public class TutoringRequestService implements
         try {
             log.info("Actualizando estado de solicitud de tutoría con ID: {} a estado: {}", requestId, newStatus);
             
-            // Validar que el nuevo estado sea válido (solo Aprobada o Rechazada)
-            if (newStatus != RequestStatus.Aprobada && newStatus != RequestStatus.Rechazada) {
-                throw new IllegalArgumentException("El estado solo puede ser actualizado a Aprobada o Rechazada");
-            }
+            // Validar permisos según el rol del usuario
+            validateStatusChangePermissions(newStatus);
             
             // Buscar la solicitud por ID
             TutoringRequest tutoringRequest = tutoringRequestRepository.findById(requestId)
                     .orElseThrow(() -> new RuntimeException("Solicitud de tutoría no encontrada con ID: " + requestId));
             
-            // Validar que la solicitud esté en estado Enviada
-            if (tutoringRequest.getRequestStatus() != RequestStatus.Enviada) {
-                throw new IllegalStateException("Solo se pueden actualizar solicitudes en estado Enviada");
-            }
+            // Validar transición de estado
+            validateStatusTransition(tutoringRequest.getRequestStatus(), newStatus);
             
             // Actualizar el estado
             tutoringRequest.setRequestStatus(newStatus);
@@ -74,6 +72,37 @@ public class TutoringRequestService implements
         } catch (Exception e) {
             log.error("Error al actualizar el estado de la solicitud de tutoría: {}", e.getMessage(), e);
             throw e;
+        }
+    }
+    
+    private void validateStatusChangePermissions(RequestStatus newStatus) {
+        RolUsuario userRole = UserContextHelper.getCurrentUserOrThrow().getRol();
+        
+        switch (newStatus) {
+            case Aprobada, Cancelada -> {
+                if (userRole != RolUsuario.Administrador) {
+                    throw new SecurityException("Solo los administradores pueden cambiar el estado a " + newStatus);
+                }
+            }
+            case Conversando, Asignada, Finalizada -> {
+                if (userRole != RolUsuario.Tutor) {
+                    throw new SecurityException("Solo los tutores pueden cambiar el estado a " + newStatus);
+                }
+            }
+        }
+    }
+    
+    private void validateStatusTransition(RequestStatus currentStatus, RequestStatus newStatus) {
+        boolean isValidTransition = switch (currentStatus) {
+            case Pendiente -> newStatus == RequestStatus.Aprobada || newStatus == RequestStatus.Cancelada;
+            case Aprobada -> newStatus == RequestStatus.Conversando || newStatus == RequestStatus.Cancelada;
+            case Conversando -> newStatus == RequestStatus.Asignada || newStatus == RequestStatus.Cancelada;
+            case Asignada -> newStatus == RequestStatus.Finalizada || newStatus == RequestStatus.Cancelada;
+            case Finalizada, Cancelada -> false;
+        };
+        
+        if (!isValidTransition) {
+            throw new IllegalStateException("Transición de estado inválida: " + currentStatus + " -> " + newStatus);
         }
     }
     

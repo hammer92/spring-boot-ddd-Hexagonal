@@ -1,8 +1,10 @@
 package com.pragma.tutorings_requests.domain.model.enums;
 
 public enum RequestStatus {
-    Enviada,
+    Pendiente,
     Aprobada,
+    Conversando,
     Asignada,
-    Rechazada
+    Finalizada,
+    Cancelada
 }

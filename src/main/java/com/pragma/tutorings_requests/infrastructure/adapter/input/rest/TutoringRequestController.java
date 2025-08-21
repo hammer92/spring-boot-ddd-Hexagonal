@@ -77,8 +77,10 @@ public class TutoringRequestController {
             log.info("User {} updating tutoring request {} status to: {}", 
                     UserContextHelper.getCurrentUserEmail(), requestId, updateStatusDto.getStatus());
             
-            // Only admins can update tutoring request status
-            UserContextHelper.requireAdminRole();
+            // Admins and tutors can update tutoring request status
+            if (!UserContextHelper.isCurrentUserAdmin() && !UserContextHelper.canActAsTutor()) {
+                throw new SecurityException("Solo administradores y tutores pueden actualizar el estado de solicitudes");
+            }
             
             TutoringRequest updatedRequest = updateTutoringRequestStatusUseCase
                     .updateStatus(requestId, updateStatusDto.getStatus());
