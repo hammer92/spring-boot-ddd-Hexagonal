@@ -51,6 +51,13 @@ public class TutoringRequestsEntity implements Serializable {
             referencedColumnName ="id")
     private TutoringEntity assignedTutoringId; // "ID de la tutoría resultante de esta solicitud (puede ser NULL)"
     
+    @Column(name = "tutor_id")
+    private String tutorId; // "ID del tutor con el que se está conversando"
+    
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "tutor_id", insertable = false, updatable = false)
+    private UsersEntity tutor; // "Tutor con el que se está conversando"
+    
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;

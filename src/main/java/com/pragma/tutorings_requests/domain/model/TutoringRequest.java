@@ -21,6 +21,8 @@ public class TutoringRequest {
     private Date requestDate;
     private RequestStatus requestStatus;
     private String assignedTutoringId;
+    private String tutorId;
+    private User tutor;
     private Date createdAt;
     private Date updatedAt;
 }

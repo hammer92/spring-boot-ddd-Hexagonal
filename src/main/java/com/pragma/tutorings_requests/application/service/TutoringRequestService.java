@@ -65,6 +65,13 @@ public class TutoringRequestService implements
             // Validar transición de estado
             validateStatusTransition(tutoringRequest.getRequestStatus(), newStatus);
             
+            // Si se cambia a estado Conversando, registrar el tutor desde la sesión
+            if (newStatus == RequestStatus.Conversando) {
+                String tutorId = UserContextHelper.getCurrentUserOrThrow().getId();
+                tutoringRequest.setTutorId(tutorId);
+                log.info("Registrando tutor con ID: {} para solicitud en estado Conversando", tutorId);
+            }
+            
             // Si se cancela una solicitud sin tutoría asignada, eliminarla completamente
             if (newStatus == RequestStatus.Cancelada && 
                 (tutoringRequest.getAssignedTutoringId() == null || tutoringRequest.getAssignedTutoringId().isEmpty())) {

@@ -128,6 +128,68 @@ class TutoringRequestServiceTest {
     }
 
     @Test
+    void updateStatus_ToConversando_WithTutorId_Success() {
+        // Arrange
+        UserContext.setCurrentUser(tutorUser);
+        tutoringRequest.setRequestStatus(RequestStatus.Aprobada);
+        when(tutoringRequestRepository.findById(requestId)).thenReturn(Optional.of(tutoringRequest));
+        when(tutoringRequestRepository.save(any(TutoringRequest.class))).thenAnswer(invocation -> {
+            TutoringRequest savedRequest = invocation.getArgument(0);
+            savedRequest.setRequestStatus(RequestStatus.Conversando);
+            savedRequest.setTutorId(tutorUser.getId());
+            return savedRequest;
+        });
+
+        // Act
+        TutoringRequest result = tutoringRequestService.updateStatus(requestId, RequestStatus.Conversando);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(RequestStatus.Conversando, result.getRequestStatus());
+        assertEquals(tutorUser.getId(), result.getTutorId());
+        verify(tutoringRequestRepository, times(1)).findById(requestId);
+        verify(tutoringRequestRepository, times(1)).save(any(TutoringRequest.class));
+    }
+
+    @Test
+    void updateStatus_ToConversando_WithoutUserContext_ThrowsException() {
+        // Arrange
+        UserContext.clear(); // Sin usuario en contexto
+        tutoringRequest.setRequestStatus(RequestStatus.Aprobada);
+        when(tutoringRequestRepository.findById(requestId)).thenReturn(Optional.of(tutoringRequest));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> 
+            tutoringRequestService.updateStatus(requestId, RequestStatus.Conversando)
+        );
+        
+        verify(tutoringRequestRepository, never()).save(any(TutoringRequest.class));
+    }
+
+    @Test
+    void updateStatus_ToConversando_Success() {
+        // Arrange
+        UserContext.setCurrentUser(tutorUser);
+        tutoringRequest.setRequestStatus(RequestStatus.Aprobada);
+        when(tutoringRequestRepository.findById(requestId)).thenReturn(Optional.of(tutoringRequest));
+        when(tutoringRequestRepository.save(any(TutoringRequest.class))).thenAnswer(invocation -> {
+            TutoringRequest savedRequest = invocation.getArgument(0);
+            savedRequest.setRequestStatus(RequestStatus.Conversando);
+            savedRequest.setTutorId(tutorUser.getId());
+            return savedRequest;
+        });
+
+        // Act
+        TutoringRequest result = tutoringRequestService.updateStatus(requestId, RequestStatus.Conversando);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(RequestStatus.Conversando, result.getRequestStatus());
+        assertEquals(tutorUser.getId(), result.getTutorId());
+        verify(tutoringRequestRepository, times(1)).save(any(TutoringRequest.class));
+    }
+
+    @Test
     void updateStatus_ToCanceled_WithoutAssignedTutoring_DeletesRequest() {
         // Arrange
         UserContext.setCurrentUser(adminUser);

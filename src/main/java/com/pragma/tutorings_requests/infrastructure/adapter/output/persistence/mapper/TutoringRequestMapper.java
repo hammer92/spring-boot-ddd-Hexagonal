@@ -24,10 +24,12 @@ import java.util.stream.Collectors;
 public abstract class TutoringRequestMapper {
 
     @Mapping(target = "assignedTutoringId", ignore = true)
+    @Mapping(target = "tutor", ignore = true)
     public abstract TutoringRequestsEntity toEntity(TutoringRequest tutoringRequest);
 
     @Mapping(target = "skills", source = "skills")
     @Mapping(target = "tutee", source = "tutee")
+    @Mapping(target = "tutor", source = "tutor")
     @Mapping(target = "assignedTutoringId", expression = "java(mapAssignedTutoringId(entity))")
     public abstract TutoringRequest toDomain(TutoringRequestsEntity entity);
     

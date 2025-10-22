@@ -150,6 +150,36 @@ class TutoringRequestControllerTest {
     }
 
     @Test
+    void updateTutoringRequestStatus_ToConversando_WithTutorId_Success() throws Exception {
+        // Arrange
+        UpdateTutoringRequestStatusDto updateStatusDto = new UpdateTutoringRequestStatusDto();
+        updateStatusDto.setStatus(RequestStatus.Conversando);
+
+        TutoringRequest updatedRequest = new TutoringRequest();
+        updatedRequest.setId(requestId);
+        updatedRequest.setRequestStatus(RequestStatus.Conversando);
+        updatedRequest.setTutorId("tutor-123");
+
+        TutoringRequestDto updatedDto = new TutoringRequestDto();
+        updatedDto.setId(requestId);
+        updatedDto.setRequestStatus(RequestStatus.Conversando);
+
+        when(updateTutoringRequestStatusUseCase.updateStatus(eq(requestId), eq(RequestStatus.Conversando)))
+                .thenReturn(updatedRequest);
+        when(tutoringRequestDtoMapper.toDto(updatedRequest)).thenReturn(updatedDto);
+        when(messageService.getMessage("tutoringRequest.status.updated.success"))
+                .thenReturn("Estado de solicitud de tutoría actualizado exitosamente");
+
+        // Act & Assert
+        mockMvc.perform(patch("/api/v1/tutoring-requests/{requestId}/status", requestId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateStatusDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(requestId))
+                .andExpect(jsonPath("$.data.requestStatus").value("Conversando"));
+    }
+
+    @Test
     void updateTutoringRequestStatus_InvalidRequestId_ThrowsException() throws Exception {
         // Arrange
         String invalidRequestId = "invalid-id";
